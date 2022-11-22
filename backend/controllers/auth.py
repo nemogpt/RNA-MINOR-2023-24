@@ -5,7 +5,11 @@ from middleware.auth import token_required
 from models.customer import Customer
 from db import db
 from argon2 import PasswordHasher
-from sqlalchemy import select
+from sqlalchemy import select,insert,update,delete
+# from sqlalchemy import create_engine
+# from sqlalchemy.or import sessionmaker , Session
+# from models import Customer
+
 
 auth_bp = Blueprint('authentication_blueprint', __name__)
 
@@ -32,10 +36,64 @@ def login():
     except argon2.exceptions.VerifyMismatchError as e:
         return jsonify({'error': "Invalid Credentials"})
     # print(customer_data.scalars()[0])
-    return jsonify({'message': 'TODO: Implement LOGIN!'})
 
-@auth_bp.route('/register', methods=["POST"])
+@auth_bp.route('/register', methods=["POST","GET"])
 def register():
-    data = request.json
+    if request.method == 'POST':
+        
+        data = request.json
+        customer_id=data['customer_id']
+        account_no=data['account_no']
+        cust_name=data['customer_name']
+        password = data['password']
+        acc_type=data['acc_type']
+        customer_data_stmt = select(Customer).where(Customer.customer_id == customer_id)
+        customer_dataset = db.session.execute(customer_data_stmt)
+        error = None
+
+        if not customer_id:
+            return jsonify({'error':'Username is required.'})
+        elif not password:
+            return jsonify({'error':'Password is required.'})
+        if not customer_dataset.scalars():
+            return jsonify({'error':"Choose different username"})
+        
+        if error is None:
+            try:
+                ph=PasswordHasher()
+                hash=ph.hash(password)
+                
+                try:
+                        
+                        stmt=insert(Customer).values(customer_id=customer_id,
+                        account_no=account_no,
+                        full_name=cust_name,
+                        password=hash,
+                        ac_type=acc_type)
+                        data=db.session.execute(stmt)
+                        db.session.commit()
+                except Exception as e:
+                    print(e)
+                    return jsonify({'error': "Database registering err!"})
+                # Pass on the data and return Registration Successful
+
+            except Exception as e:
+                print(e)
+                return jsonify({'error': "Something went Wrong, Try again!"})
+
     print("Sent Data", data)
-    return jsonify({'account': 'TODO: Implement REGISTER!!'})
+    return jsonify({'account':data})
+    
+
+# cus id data retrieve pin req pin matching 
+# multiprocessing
+# acount data , location match 
+# if location not match then new thread will wait for notification 
+# if notification accepts then it will proceed with transaction
+
+
+
+# banker's dashboard
+
+
+

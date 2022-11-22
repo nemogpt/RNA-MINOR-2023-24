@@ -1,11 +1,15 @@
-from flask import Flask
+from flask import Flask , jsonify
 from db import db
+from os import environ
 
 
-def create_app(config_filename = "config.cfg"):
+def create_app():
     app = Flask(__name__)
-    if config_filename:
-        app.config.from_pyfile(config_filename)
+    # if config_filename:
+    #     app.config.from_pyfile(config_filename)
+
+    app.config['SQLALCHEMY_DATABASE_URI'] = "postgresql://postgres:1234@127.0.0.1:5432/minor"
+    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     
     db.init_app(app)
     with app.app_context():
@@ -15,9 +19,8 @@ def create_app(config_filename = "config.cfg"):
         from models.atm import ATM
         from models.transaction import Transaction
         db.create_all()
-
+       
         from controllers.auth import auth_bp
         app.register_blueprint(auth_bp, url_prefix="/auth")
-
         return app
 
