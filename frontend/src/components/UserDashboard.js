@@ -7,8 +7,8 @@ import { Logo } from "./Logo";
 
 export const UserDashboard = (props) => {
 
-    const { logout, user, setUser } = props;
-    const [users, setUsers] = useState(props.users);
+    const { logout, users, currUser, setCurrUser} = props;
+    // const [users, setUsers] = useState(props.users);
 
     // React Router
     return (
@@ -23,8 +23,8 @@ export const UserDashboard = (props) => {
           </ul>
       </section>
         <Routes>
-          <Route path="/home" element = { <UserContent user={user} />} />
-          <Route path="/transfer" element = { <TransferPage isClient="true" client={user} setClient={setUser} users={users} setUsers={setUsers}  />} />
+          <Route path="/home" element = { <UserContent client={currUser} />} />
+          <Route path="/transfer" element = { <TransferPage isClient="true" users={users} client={currUser} setClient={setCurrUser}  />} />
         </Routes>
       </main>
       </BrowserRouter>

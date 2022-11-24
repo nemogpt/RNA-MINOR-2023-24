@@ -24,9 +24,9 @@ body {
 }
 
 hr {
-  margin: 2rem 0;
+  margin: 1.5rem 0;
   border: 0;
-  border-top: 1px solid var(--shadow);
+  border-top: 1px solid rgb(201, 201, 201);
 }
 
 main {
@@ -237,7 +237,7 @@ label {
   font-family: var(--font-family);
   outline: none;
   width: 100%;
-  font-size: 1.4rem;
+  font-size: 1.2rem;
   padding: .3rem .5rem;
   border-radius: 3px;
   color: var(--primary-text-color);
@@ -306,11 +306,6 @@ input:disabled {
   text-align: center;
   font-size: 3rem;
   margin-top: 1rem;
-}
-
-.big-input {
-  font-size: 2rem;
-  font-weight: 800;
 }
 
 .main {

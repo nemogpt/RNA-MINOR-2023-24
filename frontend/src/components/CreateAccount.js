@@ -73,26 +73,25 @@ export const CreateAccount = (props) => {
             <form id="form" onSubmit = {onCreateAccount}>
                 
                 <h1>Create Account</h1>
-                <label htmlFor="fullname">Full name</label>
-                <input id="fullname" type="text" autoComplete="off" name="fullname" required/>
-                <hr/>
                 <label htmlFor="account-number">Account (Randomly Generated)</label>
                 <input id="account-number" name="accountNumber" className="right" value={accountNumber} type="number" disabled />
-
-                <label htmlFor="balance">Initial balance</label>
-                <input id="balance" type="text" value={formatNumber(Balance)} onChange={onChangeBalance} name="initialBalance" className="right" required/>
-
+                <hr/>
                 <label htmlFor="account-type">Account Type</label>
                 <select name="accountType">
-                    <option value="Checking Account">Checking Account</option>
                     <option value="Savings Accounts">Savings Account</option>
+                    <option value="Checking Account">Salary Account</option>
                 </select>
-                <hr/>
+                <label htmlFor="fullname">Full name</label>
+                <input id="fullname" type="text" autoComplete="off" name="fullname" required/>
+
                 <label htmlFor="email">Email Address</label>
                 <input id="email" type="email" name="email" required/>
 
                 <label htmlFor="password">Password</label>
                 <input id="password" type="password" name="password" required/>
+
+                <label htmlFor="balance">Initial balance</label>
+                <input id="balance" type="text" value={formatNumber(Balance)} onChange={onChangeBalance} name="initialBalance" className="right" required/>
 
                 <input value="Create Account" className="btn" type="submit" />
 

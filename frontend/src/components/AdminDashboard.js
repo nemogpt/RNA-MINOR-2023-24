@@ -74,13 +74,13 @@ export const AdminDashboard = (props) => {
             <Route path="/deposit" 
                 element = { 
                 <>
-                    <TransactPage users={users} setUsers={setUsers} type="add" />
+                    <TransactPage users={users} setUsers={setUsers} type="add" page="deposit"/>
                 </>
                 } />
             <Route path="/withdraw" 
                 element = { 
                 <>
-                    <TransactPage users={users} setUsers={setUsers} type="subtract" />
+                    <TransactPage users={users} setUsers={setUsers} type="subtract" page="withdraw"/>
                 </>
                 } />
           </Routes>

@@ -17,8 +17,9 @@ export default function LoginPage() {
     const [isLoggedIn, setIsLoggedIn] = useState(false);
     const [isAdmin, setIsAdmin] = useState(false);
     const [currUser, setCurrUser] = useState(null);
+    
     const localUsers = localStorage.getItem('users');
-
+    
     // set local storage data
     if(!localUsers) {
       localStorage.setItem('users', JSON.stringify(LocalData));
@@ -87,13 +88,12 @@ export default function LoginPage() {
     }
   
     // Redirect to corresponding pages
-    console.log(isLoggedIn)
     if(isLoggedIn) {
       localStorage.setItem('currUser', JSON.stringify(currUser));
       if(isAdmin)
         return <AdminDashboard users={users} logout={logout} />
       else
-        return <UserDashboard currUser={currUser} users={users} setUser={setCurrUser} logout={logout} />
+        return <UserDashboard users={users} currUser={currUser} setCurrUser={setCurrUser} logout={logout} />
     }
     
     return (

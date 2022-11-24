@@ -7,6 +7,8 @@ toast.configure()
 
 export const TransferPage = (props) => {
     const {isClient, client, setClient} = props;
+
+    // useState Hooks
     const [users, setUsers] = useState(props.users); 
     const [receivers, setReceivers] = useState(users);
     const [sender, setSender] = useState( isClient ? client : {balance: 0});
@@ -148,23 +150,18 @@ export const TransferPage = (props) => {
         <section id="main-content">
             <form id="form" onSubmit={transferFund}>
                 <h1>Fund Transfer</h1>
-                
-                <h2>Sender</h2>
                 {senderField}
-
                 <label>Current balance</label>
-                <input type="text" className="right" value={formatNumber(sender.balance)} disabled />
-
+                <input type="text" className="right" value={sender.balance} disabled />
                 <label>Amount to Transfer</label>
-                <input type="text" name="amount" value={formatNumber(transferAmount)} onChange={onTransfer} autoComplete="off" className="right big-input" />
-
-                <h2>Receiver</h2>
+                <input type="text" name="amount" value={transferAmount} onChange={onTransfer} autoComplete="off" className="right" />
+                <hr />
                 <select value={receiver.number || 0} onChange={receiverSelected} name="receiver">
                     <option>Select Receiver</option>
                     {newReceivers}
                 </select>
                 <label>Current balance</label>
-                <input type="text" className="right" value={formatNumber(receiver.balance)} disabled />
+                <input type="text" className="right" value={receiver.balance} disabled />
                 <input type="submit" className="btn" value="Transfer Fund" />
             </form>
         </section>
