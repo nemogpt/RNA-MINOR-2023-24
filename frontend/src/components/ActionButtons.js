@@ -1,14 +1,14 @@
 import React from "react";
 
 export const ActionButtons = (props) => {
-    const {editingUser, setEditingUser, index, setEditModal, setDeleteUser} = props;
+    const {index, editingUser, setEditingUser, setEditModal, setDeleteUser} = props;
 
     return (
       <div id="actions">
         <ActionButton 
           icon="bx bx-edit" 
           text="Edit" 
-          index={index} 
+          index={index}
           actionType="edit"
           editingUser={editingUser} 
           setEditingUser={setEditingUser} 
@@ -16,9 +16,9 @@ export const ActionButtons = (props) => {
 
         <ActionButton 
           icon="bx bxs-x-square"  
+          text="Delete" 
           index={index} 
           actionType='delete'
-          text="Delete" 
           editingUser={editingUser} 
           setDeleteUser={setDeleteUser} />
       </div>
@@ -28,8 +28,8 @@ export const ActionButtons = (props) => {
 export const ActionButton = (props) => {
     const {icon, text, actionType, setEditingUser, index, setEditModal, setDeleteUser} = props;
 
-    const click = (e, index) => {
-      e.preventDefault();
+    const click = (event, index) => {
+      event.preventDefault();
       
       if(actionType === 'edit') {
         setEditingUser(index);

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { AdminContent } from "./AdminContent";
 import { CreateAccount } from "./CreateAccount";
 import { TransferPage } from "./TransferPage";
@@ -21,10 +21,41 @@ export const AdminDashboard = (props) => {
     const [isUpdate, setIsUpdate] = useState(false); 
     const [newAccount, setNewAccount] = useState(null); 
 
-    let overlay = null;
-    if(editingUser && editUser) {
+    // useEffect Hooks
+    useEffect(() => {
+        if(deleteUser !== null) {
+
+            const filteredUsers = users.filter((user, index) => {
+                return index !== deleteUser
+            });
+
+            setUsers(filteredUsers);
+            setDeleteUser(null);
+            // save
+            localStorage.setItem('users', JSON.stringify(filteredUsers));
+        }
+    }, [deleteUser]);
+    useEffect(() => {
+        if(isUpdate) {
+            const filteredUsers = users.map((user, index) => {
+                if(user.number === newAccount.number) {
+                    user = {...user, ...newAccount};
+                }
+                return user;
+            });
+
+            setUsers(filteredUsers);
+            setIsUpdate(false);
+            // save
+            localStorage.setItem('users', JSON.stringify(filteredUsers));
+        }
+    }, [isUpdate]);
+
+    let editPopup = null;
+    if(editingUser !== false && editUser) {
+        console.log('it is being executed')
         const user = users[editingUser];
-        overlay = <AccountEdit 
+        editPopup = <AccountEdit 
             accountName={user.fullname} 
             accountNumber={user.number} 
             balance={user.balance} 
@@ -56,7 +87,7 @@ export const AdminDashboard = (props) => {
                 <>
                     <AdminContent users={users} editingUser={editingUser} setEditModal={setEditUser} 
                         setEditingUser={setEditingUser} setDeleteUser={setDeleteUser} />
-                    {overlay}
+                    {editPopup}
                 </>
                 } />
             <Route path="/create-account" 
@@ -101,6 +132,7 @@ const AccountEdit = (props) => {
 
     const updateAccount = (event) => {
         event.preventDefault();
+        console.log(account)
         setNewAccount(account);
         setIsUpdate(true);
         setEditUser(false);

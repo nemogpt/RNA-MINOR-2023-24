@@ -102,10 +102,15 @@ h1, h2, h3 {
     animation: fadein .3s;
     position: relative;
 }
+#main-headers {
+  display: flex;
+  flex-direction: row;
+  margin: 1.2rem;
+}
 
-/* #main-content .details > * {
-  margin: 0 1.5rem;
-} */
+#main-headers h1 {
+  margin-left: 7.5rem;
+}
 
 #main-content .account {
     display: flex;
@@ -119,30 +124,38 @@ h1, h2, h3 {
     box-shadow: var(--shadow);
 }
 
+/* #main-content > h1 {
+  position: absolute;
+  left: 0px;
+} */
+
 #main-content h3 {
   position: absolute;
-  left: 330px;
+  left: 345px;
   font-weight: normal;
   text-transform: uppercase;
 }
 
 #main-content p {
   position: absolute;
-  left: 480px;
+  left: 520px;
 }
 
 #main-content .balance {
   position: absolute;
-  left: 700px;
+  left: 740px;
   font-weight: 500;
   font-size: 1.2rem;
+}
+
+#main-content .details-main{
+  margin-left: 10px;
 }
 
 #main-content .details {
     display: flex;
     justify-content: center;
     align-items: center;
-
 }
 
 #actions {

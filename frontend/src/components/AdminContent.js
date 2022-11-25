@@ -2,9 +2,9 @@ import { Account } from "./Account";
 import React, { useEffect, useState } from "react";
 
 export const AdminContent = (props) => {
-
-    const users = props.users;
     const {editingUser, setEditingUser, setEditModal, setDeleteUser} = props;
+    
+    const users = props.users;
     const [isAdmin, setIsAdmin] = useState(false);
 
     useEffect(() => {
@@ -31,7 +31,12 @@ export const AdminContent = (props) => {
       
     return (
       <section id="main-content">
-        <Account fullname = "HOLDER" type = "TYPE" accountNumber = "ACCOUNT NUMBER" balance = "BALANCE"/>
+        <div id="main-headers">
+          <h1>Holder</h1>
+          <h1>Type</h1>
+          <h1>Number</h1>
+          <h1>Balance</h1>
+        </div>
         {bankAccounts}
       </section>
     )
