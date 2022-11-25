@@ -1,12 +1,12 @@
 import { useState } from "react";
-import { formatNumber, getDateToday } from "./Utils";
+import { getDateToday } from "./Utils";
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
 toast.configure()
 
 export const TransferPage = (props) => {
-    const {isClient, client, setClient} = props;
+    const { isClient, client} = props;  
 
     // useState Hooks
     const [users, setUsers] = useState(props.users); 
@@ -58,32 +58,26 @@ export const TransferPage = (props) => {
         });
     }
 
-    const newReceivers = receivers.map(receiver => {
+    const newReceivers = receivers.map((receiver) => {
         if(sender.number !== receiver.number) {
-            return (
-                <option value={receiver.number}>{receiver.fullname} #{receiver.number}</option>
-            )
-        }
-        
-    })
+            return (<option value={receiver.number}>{receiver.fullname} #{receiver.number}</option>)
+        } 
+    });
 
-    const transferFund = event => {
+    const transferFund = (event) => {
         event.preventDefault();
         const amount = parseFloat(event.target.elements.amount.value.replace(/,/g, ''));
         if(amount <= 0) return false;
 
-        // get localstorage users
         const users = JSON.parse(localStorage.getItem('users'));
 
         if(sender.number !== 0 && receiver.number !== 0 && receiver.number) {
-            // deduct from sender
             let senderSuccess = false;
             users.forEach(user => {
                 if(user.number === sender.number) {
                     if(user.balance - amount >= 0) {
                         user.balance -= amount;
 
-                        const transDate = new Date();
                         console.log(user.transactions);
                         user.transactions.unshift({
                             title: `Fund transfer to ${receiver.fullname} #${receiver.number}`, 
@@ -117,9 +111,9 @@ export const TransferPage = (props) => {
                 });
 
                 toast.success("Transferred Successfully", {position:"top-center"})
+                // setUsers(users);
                 setUsers(users);
-                props.setUsers(users);
-                localStorage.setItem('users', JSON.stringify(users));
+                // localStorage.setItem('users', JSON.stringify(users));
                 setTransferAmount(0);
             } 
             else {

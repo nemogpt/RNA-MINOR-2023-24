@@ -103,6 +103,10 @@ h1, h2, h3 {
     position: relative;
 }
 
+/* #main-content .details > * {
+  margin: 0 1.5rem;
+} */
+
 #main-content .account {
     display: flex;
     flex-wrap: nowrap;
@@ -116,19 +120,29 @@ h1, h2, h3 {
 }
 
 #main-content h3 {
+  position: absolute;
+  left: 330px;
   font-weight: normal;
   text-transform: uppercase;
 }
 
+#main-content p {
+  position: absolute;
+  left: 480px;
+}
+
 #main-content .balance {
-    font-weight: 800;
-    font-size: 2rem;
+  position: absolute;
+  left: 700px;
+  font-weight: 500;
+  font-size: 1.2rem;
 }
 
 #main-content .details {
     display: flex;
     justify-content: center;
-    flex-direction: column;
+    align-items: center;
+
 }
 
 #actions {

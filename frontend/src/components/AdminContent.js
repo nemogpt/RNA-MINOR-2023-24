@@ -1,7 +1,7 @@
 import { Account } from "./Account";
 import React, { useEffect, useState } from "react";
 
-export const MainContent = (props) => {
+export const AdminContent = (props) => {
 
     const users = props.users;
     const {editingUser, setEditingUser, setEditModal, setDeleteUser} = props;
@@ -31,6 +31,7 @@ export const MainContent = (props) => {
       
     return (
       <section id="main-content">
+        <Account fullname = "HOLDER" type = "TYPE" accountNumber = "ACCOUNT NUMBER" balance = "BALANCE"/>
         {bankAccounts}
       </section>
     )

@@ -20,10 +20,10 @@ export const Account = (props) => {
           <div className="details">
               <h1>{fullname}</h1>
               <h3>{type}</h3>
-              <div>{accountNumber}</div>
-              {action}
+              <p>{accountNumber}</p>
+              <div className="balance">{balance}</div>
           </div>
-          <div className="balance">{balance}</div>
+          {action}
       </div>
     )
   }

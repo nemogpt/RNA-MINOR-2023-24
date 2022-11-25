@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import { MainContent } from "./AdminContent";
+import { useState } from "react";
+import { AdminContent } from "./AdminContent";
 import { CreateAccount } from "./CreateAccount";
 import { TransferPage } from "./TransferPage";
 import { TransactPage } from "./TransactPage";
@@ -54,7 +54,7 @@ export const AdminDashboard = (props) => {
             <Route path="/home" 
                 element = { 
                 <>
-                    <MainContent users={users} editingUser={editingUser} setEditModal={setEditUser} 
+                    <AdminContent users={users} editingUser={editingUser} setEditModal={setEditUser} 
                         setEditingUser={setEditingUser} setDeleteUser={setDeleteUser} />
                     {overlay}
                 </>
