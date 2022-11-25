@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React from 'react';
 import { UserContent } from './UserContent';
 import { TransferPage } from './TransferPage';
 import { BrowserRouter, Routes, Route, Link } from "react-router-dom"
@@ -6,9 +6,7 @@ import { Logo } from "./Logo";
 
 
 export const UserDashboard = (props) => {
-
-    const { logout, users, currUser, setCurrUser} = props;
-    // const [users, setUsers] = useState(props.users);
+    const { logout, users, currUser} = props;
 
     // React Router
     return (
@@ -23,8 +21,8 @@ export const UserDashboard = (props) => {
           </ul>
       </section>
         <Routes>
-          <Route path="/home" element = { <UserContent client={currUser} />} />
-          <Route path="/transfer" element = { <TransferPage isClient="true" users={users} client={currUser} setClient={setCurrUser}  />} />
+          <Route path="/home" element = { <UserContent users={users} client={currUser} />} />
+          <Route path="/transfer" element = { <TransferPage isClient="true" users={users} client={currUser}  />} />
         </Routes>
       </main>
       </BrowserRouter>

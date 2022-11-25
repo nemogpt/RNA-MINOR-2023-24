@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { formatNumber, findAccount, transact, trim, capitalize } from "./Utils";
+import { formatNumber, findAccount, transact, trim } from "./Utils";
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
