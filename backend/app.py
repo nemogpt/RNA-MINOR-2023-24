@@ -8,7 +8,7 @@ def create_app():
     # if config_filename:
     #     app.config.from_pyfile(config_filename)
 
-    app.config['SQLALCHEMY_DATABASE_URI'] = "postgresql://postgres:1234@127.0.0.1:5432/minor"
+    app.config['SQLALCHEMY_DATABASE_URI'] = "postgresql://minor:dev@127.0.0.1:5432/minor"
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     
     db.init_app(app)
