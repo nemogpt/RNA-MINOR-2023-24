@@ -12,7 +12,7 @@ fakerObj.add_provider(person)
 fakerObj.add_provider(company)
 
 db_connection = psycopg2.connect(
-    database="minor", user="minor", password="dev", host="localhost", port=5432)
+    database="minor", user="", password="1234", host="localhost", port=5432)
 
 db_cursor = db_connection.cursor()
 
