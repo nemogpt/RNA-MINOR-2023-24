@@ -5,10 +5,8 @@ from os import environ
 
 def create_app():
     app = Flask(__name__)
-    # if config_filename:
-    #     app.config.from_pyfile(config_filename)
 
-    app.config['SQLALCHEMY_DATABASE_URI'] = "postgresql://minor:dev@127.0.0.1:5432/minor"
+    app.config['SQLALCHEMY_DATABASE_URI'] = "postgresql://postgres:1234@127.0.0.1:5432/minor"
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     
     db.init_app(app)
@@ -18,8 +16,7 @@ def create_app():
         from models.customer import Customer
         from models.atm import Atm
         from models.transaction import Transaction
-        db.create_all()
-       
+        db.create_all()    
         from controllers.auth import auth_bp
         app.register_blueprint(auth_bp, url_prefix="/auth")
         return app

@@ -6,9 +6,6 @@ from models.customer import Customer
 from db import db
 from argon2 import PasswordHasher
 from sqlalchemy import select,insert,update,delete
-# from sqlalchemy import create_engine
-# from sqlalchemy.or import sessionmaker , Session
-# from models import Customer
 
 
 auth_bp = Blueprint('authentication_blueprint', __name__)
@@ -40,11 +37,10 @@ def login():
 @auth_bp.route('/register', methods=["POST","GET"])
 def register():
     if request.method == 'POST':
-        
         data = request.json
         customer_id=data['customer_id']
         account_no=data['account_no']
-        cust_name=data['customer_name']
+        customer_name=data['customer_name']
         password = data['password']
         acc_type=data['acc_type']
         customer_data_stmt = select(Customer).where(Customer.customer_id == customer_id)
@@ -52,7 +48,7 @@ def register():
         error = None
 
         if not customer_id:
-            return jsonify({'error':'Username is required.'})
+            return jsonify({"'error":"Username is required."})
         elif not password:
             return jsonify({'error':'Password is required.'})
         if not customer_dataset.scalars():
@@ -61,27 +57,30 @@ def register():
         if error is None:
             try:
                 ph=PasswordHasher()
-                hash=ph.hash(password)
-                
+                hash=ph.hash(password) 
                 try:
                         
-                        stmt=insert(Customer).values(customer_id=customer_id,
+                        stmt=insert(Customer).values(
+                        customer_id=customer_id,
                         account_no=account_no,
-                        full_name=cust_name,
+                        full_name=customer_name,
                         password=hash,
-                        ac_type=acc_type)
+                        ac_type=acc_type
+                        
+                        )
                         data=db.session.execute(stmt)
                         db.session.commit()
                 except Exception as e:
                     print(e)
-                    return jsonify({'error': "Database registering err!"})
+                    return jsonify({'error': e})
                 # Pass on the data and return Registration Successful
 
             except Exception as e:
                 print(e)
                 return jsonify({'error': "Something went Wrong, Try again!"})
 
-    print("Sent Data", data)
+    print("Sent Data\n", data)
+
     return jsonify({'account':data})
     
 
