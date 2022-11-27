@@ -16,7 +16,7 @@ def create_app():
         from models.branch import Branch
         from models.card import Card
         from models.customer import Customer
-        from models.atm import ATM
+        from models.atm import Atm
         from models.transaction import Transaction
         db.create_all()
        

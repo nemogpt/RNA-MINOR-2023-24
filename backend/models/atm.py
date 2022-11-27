@@ -3,7 +3,7 @@ import sqlalchemy as sa
 from models.branch import Branch
 
 
-class ATM(db.Model):
+class Atm(db.Model):
     atm_id = sa.Column(sa.String, primary_key=True)
     atm_address = sa.Column(sa.String, nullable=False)
     atm_branch = sa.Column("branch", sa.ForeignKey(Branch.branch_id))

@@ -14,11 +14,12 @@ fakerObj.add_provider(company)
 db_connection = psycopg2.connect(
     database="minor", user="minor", password="dev", host="localhost", port=5432)
 
+db_connection.set_session(autocommit=True)
 db_cursor = db_connection.cursor()
 
 
 def create_branch_details():
-    ifsc = fakerObj.swift()
+    ifsc = random.randint(100000, 999999)
     name = fakerObj.company()
     addr = fakerObj.address()
     obj = {'branch_id': ifsc, 'branch_name': name, 'branch_address': addr}
@@ -33,7 +34,7 @@ def create_customer():
     ac_type = random.randint(0, 2)
     branch = random.choice(branches)['branch_id']
     obj = {'customer_id': customer_id, 'account_no': account_no,
-           'name': full_name, 'balance': balance, 'ac_type': ac_type, 'home_branch': branch}
+           'full_name': full_name, 'balance': balance, 'ac_type': ac_type, 'home_branch': branch}
     # print(obj)
     return obj
 
@@ -46,7 +47,7 @@ def create_cards(customers: list):
         card_type = random.randint(0, 1)
         pin = random.randint(0000, 9999)
         cvv = fakerObj.credit_card_security_code()
-        exp_date = fakerObj.credit_card_expire()
+        exp_date = fakerObj.credit_card_expire(date_format="%Y/%m/%d")
         txn_limit = None
         credit_limit = None
         if card_type == 1:
@@ -80,15 +81,24 @@ def create_atms(branches: list):
         atm_branch_c = random.choice(branches)
         atm_branch = atm_branch_c['branch_id']
         branches.remove(atm_branch_c)
-        location = list(fakerObj.local_latlng(country_code="IN", coords_only=True))
+        location = list(fakerObj.local_latlng(
+            country_code="IN", coords_only=True))
         location = [float(i) for i in location]
-        location = tuple(location)
+        location = parse_array_to_psql(tuple(location))
         balance = random.randint(0, 9999999)
-        
+
         obj = {'atm_id': atm_id, 'atm_address': atm_address,
-               'atm_branch': atm_branch, 'location': location, 'balance': balance}
-        # print(obj)
+               'branch': atm_branch, 'location': location, 'balance': balance}
         atms.append(obj)
+
+
+def parse_array_to_psql(arr):
+    arr_stmt = "{"
+    for a in arr:
+        arr_stmt += str(a) + ", "
+    arr_stmt = arr_stmt[:len(arr_stmt) - 2]
+    arr_stmt += "}"
+    return arr_stmt
 
 
 branches = []
@@ -101,47 +111,53 @@ for _ in range(30):
 for _ in range(10000):
     customers.append(create_customer())
 
+
 def prepare_insert_sql(data: dict, tbl_name: str = "tbl"):
-    stmt = f'INSERT INTO {tbl_name}(' 
+    stmt = f'INSERT INTO {tbl_name}('
     for col in data.keys():
         stmt += str(col) + ','
     stmt = stmt[:len(stmt) - 1]
     stmt += ') VALUES ('
-    for val in data.values():
-        if (val is None):
-            stmt += 'NULL, '
-        elif (type(val) == type('1')):
-            stmt += '\''+ str(val) + '\'' + ', '
-        else:
-            stmt += str(val) + ', '
+    for _ in data.values():
+        if (tbl_name == "atm" and type(_) == type(tuple([]))):
+            stmt += '%s::double precision[], '
+            continue
+        stmt += '%s, '
     stmt = stmt[:len(stmt)-2]
     stmt += ')'
-    print(stmt)
-    return stmt
-    
+    return (stmt, tuple(data.values()))
 
-create_cards(customers)
-create_atms(branches)
 # print(customers)
 # print(cards)
 # print(branches)
 # print(atms)
 
+
 for branch in branches:
-    stmt = prepare_insert_sql(branch, 'branch')
-    db_cursor.execute(stmt)
+    stmt_dt = prepare_insert_sql(branch, 'branch')
+    db_cursor.execute(stmt_dt[0], stmt_dt[1])
 print("Branches Done")
 # for atm in atms:
 #     stmt = prepare_insert_sql(atm, 'ATM')
 #     db_cursor.execute(stmt)
 
 for customer in customers:
-    stmt =  prepare_insert_sql(customer, 'customer')
-    db_cursor.execute(stmt)
+    stmt_dt = prepare_insert_sql(customer, 'customer')
+    db_cursor.execute(stmt_dt[0], stmt_dt[1])
 print("Customers Done")
-# for card in cards:
-#     stmt = prepare_insert_sql(card, 'card')
-#     db_cursor.execute(stmt)
+
+create_cards(list(customers))
+create_atms(list(branches))
+
+for card in cards:
+    stmt_dt = prepare_insert_sql(card, 'card')
+    db_cursor.execute(stmt_dt[0], stmt_dt[1])
+print("Cards Done")
+
+for atm in atms:
+    stmt_dt = prepare_insert_sql(atm, 'atm')
+    db_cursor.execute(stmt_dt[0], stmt_dt[1])
+print("ATMs Done")
 
 db_connection.commit()
 db_connection.close()
