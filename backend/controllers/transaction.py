@@ -10,10 +10,10 @@ from argon2 import PasswordHasher
 from sqlalchemy import select, insert, update, delete
 from datetime import datetime
 
-auth_bp = Blueprint('authentication_blueprint', __name__)
+transaction_bp = Blueprint('transaction_blueprint', __name__)
 
 
-@auth_bp.route('/transact', methods=["GET"])
+@transaction_bp.route('/transact', methods=["GET"])
 @token_required
 def getBal(current_user):
     # To get the current balance
@@ -82,10 +82,10 @@ def withdraw(current_user):
                 query=Customer.update().where(customer_id=username).values(balance=avail-amount)
                 return jsonify({"success": "Withdrawl successful"})
     return (jsonify({
-        "status": 200,
+        "status": 401,
         "msg": "Failed",
         "msg": "Wrong account details"
-    }))
+    })),401
 
 def transfer(current_user):
     # Transfer money to another account

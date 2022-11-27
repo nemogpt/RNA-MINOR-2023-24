@@ -17,4 +17,7 @@ def computeDistance(latlng1: tuple, latlng2: tuple) -> float:
 
 # limitRad is in km
 def isWithinLimit(userLoc: tuple, atmLoc: tuple, limitRad: int = 0.01) -> bool:
+    d = computeDistance(userLoc, atmLoc)
+    if d <= limitRad:
+        return True
     return False

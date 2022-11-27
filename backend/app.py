@@ -6,7 +6,7 @@ from os import environ
 def create_app():
     app = Flask(__name__)
 
-    app.config['SQLALCHEMY_DATABASE_URI'] = "postgresql://postgres:1234@127.0.0.1:5432/minor"
+    app.config['SQLALCHEMY_DATABASE_URI'] = "postgresql://minor:dev@127.0.0.1:5432/minor"
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     
     db.init_app(app)
