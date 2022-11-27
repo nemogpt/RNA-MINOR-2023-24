@@ -4,7 +4,7 @@ from flask import Blueprint, jsonify, request
 from middleware.auth import token_required
 from models.customer import Customer
 from models.transaction import Transaction
-from models.card import card
+from models.card import Card
 from db import db
 from argon2 import PasswordHasher
 from sqlalchemy import select, insert, update, delete
@@ -41,14 +41,13 @@ def verify_Account(slef, data):
     custDetails=custDetails.scalar()[0]
     if custDetails is None:
         return False
-    cardDetails = select(card).where(card_no=custDetails.ac_no)
+    cardDetails = select(Card).where(card_no=custDetails.ac_no)
     cardDetails=cardDetails.scalar()[0]
     if cardDetails is None:
         return False
     if(cardDetails.card_no!=data.card_no or cardDetails.cvv!=data.cvv or cardDetails.pin!=data.pin or cardDetails.exp_date!=data.exp_date):
         return False
     return True
-
 
 
 def withdraw(current_user):

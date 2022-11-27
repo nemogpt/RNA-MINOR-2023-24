@@ -6,16 +6,21 @@ from models.customer import Customer
 from db import db
 from argon2 import PasswordHasher
 from sqlalchemy import select,insert,update,delete
+from jwt import api_jwt
+import datetime
 
+
+from models.atm import Atm
+from util import isWithinLimit,computeDistance
 
 auth_bp = Blueprint('authentication_blueprint', __name__)
 
-@auth_bp.route('/', methods = ["GET"])
+@auth_bp.route('/', methods = ["GET","OPTIONS"])
 @token_required
 def getProfile(current_user):
     return jsonify(current_user), 200
 
-@auth_bp.route('/', methods=["POST"])
+@auth_bp.route('/', methods=["POST", "OPTIONS"])
 def login():
     body = request.json
     customer_id = body['customer_id']
@@ -29,12 +34,26 @@ def login():
     ph = PasswordHasher()
     try:
         ph.verify(pwd_hash, password)
-        return {'token': "ejwr", "msg":"Welcome "}
+        token = api_jwt.encode({"customer_data": customer_id}, "secret_key", algorithm="HS256")
+        return jsonify({'token': token, "msg":f"Welcome {customer_data.full_name}"}), 200
     except argon2.exceptions.VerifyMismatchError as e:
-        return jsonify({'error': "Invalid Credentials"})
+        return jsonify({'error': "Invalid Credentials"}), 401
     # print(customer_data.scalars()[0])
 
-@auth_bp.route('/register', methods=["POST","GET"])
+@auth_bp.route("/check_location", methods=["POST"])
+def check_location():
+    atm_location_stmt = select(Atm).where(Atm.atm_id=="55919391")
+    atm_dset = db.session.execute(atm_location_stmt)
+    atm_data = None
+    for atm_dt in atm_dset.scalars():
+        atm_data = atm_dt
+    user_location = request.json['user_location']
+    atm_location = atm_data.location
+    
+    print(isWithinLimit(user_location, atm_location), computeDistance(user_location, atm_location))
+    return jsonify({'msg': 'OK'}),200
+
+@auth_bp.route('/register', methods=["POST","GET","OPTIONS"])
 def register():
     if request.method == 'POST':
         data = request.json
@@ -48,11 +67,11 @@ def register():
         error = None
 
         if not customer_id:
-            return jsonify({"'error":"Username is required."})
+            return jsonify({"'error":"Username is required."}), 400
         elif not password:
-            return jsonify({'error':'Password is required.'})
+            return jsonify({'error':'Password is required.'}), 400
         if not customer_dataset.scalars():
-            return jsonify({'error':"Choose different username"})
+            return jsonify({'error':"Choose different username"}), 400
         
         if error is None:
             try:
@@ -72,16 +91,16 @@ def register():
                         db.session.commit()
                 except Exception as e:
                     print(e)
-                    return jsonify({'error': e})
+                    return jsonify({'error': e}), 500
                 # Pass on the data and return Registration Successful
 
             except Exception as e:
                 print(e)
-                return jsonify({'error': "Something went Wrong, Try again!"})
+                return jsonify({'error': "Something went Wrong, Try again!"}), 400
 
     print("Sent Data\n", data)
 
-    return jsonify({'account':data})
+    return jsonify({'account':data}), 200
     
 
 # cus id data retrieve pin req pin matching 

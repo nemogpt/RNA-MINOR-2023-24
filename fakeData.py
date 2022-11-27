@@ -2,6 +2,9 @@ import faker
 import random
 from faker.providers import bank, credit_card, geo, address, person, company
 import psycopg2
+from argon2 import PasswordHasher
+import string
+import threading
 
 fakerObj = faker.Faker()
 fakerObj.add_provider(bank)
@@ -12,7 +15,7 @@ fakerObj.add_provider(person)
 fakerObj.add_provider(company)
 
 db_connection = psycopg2.connect(
-    database="minor", user="minor", password="dev", host="localhost", port=5432)
+    database="rna", user="minor_rna", password="dev", host="localhost", port=5432)
 
 db_connection.set_session(autocommit=True)
 db_cursor = db_connection.cursor()
@@ -27,15 +30,23 @@ def create_branch_details():
 
 
 def create_customer():
+    f = open('cust_details.txt', 'a+')
     customer_id = random.randint(1000000000, 9999999999)
     account_no = fakerObj.bban()
     full_name = f"{fakerObj.first_name()} {fakerObj.last_name()}"
     balance = random.randint(0, 100000)
     ac_type = random.randint(0, 2)
+    password_plain = ''.join(
+        [random.choice(string.ascii_letters + string.digits) for _ in range(6)])
+    ph = PasswordHasher()
+    password_hash = ph.hash(password_plain)
+    record = f"{customer_id}:{password_plain} - {full_name}\n"
+    f.write(record)
     branch = random.choice(branches)['branch_id']
     obj = {'customer_id': customer_id, 'account_no': account_no,
-           'full_name': full_name, 'balance': balance, 'ac_type': ac_type, 'home_branch': branch}
+           'full_name': full_name, 'balance': balance, 'ac_type': ac_type, 'home_branch': branch, 'password': password_hash}
     # print(obj)
+    f.close()
     return obj
 
 
@@ -101,17 +112,6 @@ def parse_array_to_psql(arr):
     return arr_stmt
 
 
-branches = []
-atms = []
-customers = []
-cards = []
-for _ in range(30):
-    branches.append(create_branch_details())
-
-for _ in range(10000):
-    customers.append(create_customer())
-
-
 def prepare_insert_sql(data: dict, tbl_name: str = "tbl"):
     stmt = f'INSERT INTO {tbl_name}('
     for col in data.keys():
@@ -127,37 +127,49 @@ def prepare_insert_sql(data: dict, tbl_name: str = "tbl"):
     stmt += ')'
     return (stmt, tuple(data.values()))
 
-# print(customers)
-# print(cards)
-# print(branches)
-# print(atms)
-
+branches = []
+atms = []
+customers = []
+cards = []
+for _ in range(30):
+    branches.append(create_branch_details())
 
 for branch in branches:
     stmt_dt = prepare_insert_sql(branch, 'branch')
     db_cursor.execute(stmt_dt[0], stmt_dt[1])
 print("Branches Done")
-# for atm in atms:
-#     stmt = prepare_insert_sql(atm, 'ATM')
-#     db_cursor.execute(stmt)
 
-for customer in customers:
-    stmt_dt = prepare_insert_sql(customer, 'customer')
-    db_cursor.execute(stmt_dt[0], stmt_dt[1])
-print("Customers Done")
-
-create_cards(list(customers))
 create_atms(list(branches))
-
-for card in cards:
-    stmt_dt = prepare_insert_sql(card, 'card')
-    db_cursor.execute(stmt_dt[0], stmt_dt[1])
-print("Cards Done")
-
 for atm in atms:
     stmt_dt = prepare_insert_sql(atm, 'atm')
     db_cursor.execute(stmt_dt[0], stmt_dt[1])
 print("ATMs Done")
 
-db_connection.commit()
-db_connection.close()
+def main(start=0, end=1000):
+    global cards
+    global customers
+    cards = []
+    customer = []   
+    for _ in range(start, end+1):
+        customers.append(create_customer())
+        print(f"{_} record inserted")
+
+    for customer in customers:
+        stmt_dt = prepare_insert_sql(customer, 'customer')
+        db_cursor.execute(stmt_dt[0], stmt_dt[1])
+    print(f"Customers {start} to {end} Done")
+
+    create_cards(list(customers))
+    for card in cards:
+        stmt_dt = prepare_insert_sql(card, 'card')
+        db_cursor.execute(stmt_dt[0], stmt_dt[1])
+    print(f"Cards {start} to {end} - Done")
+
+    db_connection.commit()
+    db_connection.close()
+
+
+threading.Thread(target=main, args=(0,99)).start()
+# for i in range(10):
+#     print(f"{i+1}th Thread Created")
+#     threading.Thread(target=main, args=(i*1000,i*1000 + 1000)).start()
