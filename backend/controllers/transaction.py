@@ -36,7 +36,7 @@ def _validate_pin(self, pin):
         pin))
 
 
-def verify_Account(slef, data):
+def verify_Account(data):
     custDetails = select(Customer.account_no).where(customer_id=data.username)
     custDetails=custDetails.scalar()[0]
     if custDetails is None:
@@ -50,7 +50,9 @@ def verify_Account(slef, data):
     return True
 
 
-def withdraw(current_user):
+@transaction_bp.route("/withdraw", methods=["POST"])
+@token_required
+def withdraw(current_user, isAdmin):
     # to debit the amount from ATM
     debitData = request.json()
     username = current_user
@@ -69,7 +71,7 @@ def withdraw(current_user):
         "cvv":cvv
     }
     if(verify_Account(data)):
-        cardDetails = select(card).where(card_no=custDetails.ac_no)
+        cardDetails = select(Card).where(card_no=custDetails.ac_no)
         # cardDetails=cardDetails.scalar()[0]
         if(cardDetails.card_type==0):
             avail = select(Customer.balance).where(customer_id=username)

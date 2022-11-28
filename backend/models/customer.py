@@ -10,5 +10,3 @@ class Customer(db.Model):
     ac_type = sa.Column(sa.Integer) # 0 - Saving, 1 - Current, 2 - Credit
     password=sa.Column(sa.String,nullable=False)
     home_branch = sa.Column("home_branch",sa.ForeignKey(Branch.branch_id))
-
-
