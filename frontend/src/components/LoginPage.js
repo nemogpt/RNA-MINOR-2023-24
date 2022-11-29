@@ -45,14 +45,8 @@ export default function LoginPage() {
     return false;
   };
 
-  const users = JSON.parse(localStorage.getItem("users"));
-
   // Login success
   const loginSuccess = async (username, password) => {
-    if (username === "admin" && password === "admin") {
-      setIsAdmin(true);
-      return true;
-    }
     const request = await axios.post(
       "http://localhost:5000/auth/",
       {
@@ -62,10 +56,15 @@ export default function LoginPage() {
       { withCredentials: true }
     );
 
+    alert(Object.keys(request.data));
+
     if (request.status !== 200) {
       return false;
     } else {
       localStorage.setItem("token", request.data?.token);
+      if (request.data?.is_admin) {
+        setIsAdmin(true);
+      }
       toast.success(request.data?.msg, { position: "top-center" });
       return true;
     }
@@ -83,16 +82,11 @@ export default function LoginPage() {
   // Redirect to corresponding pages
   if (isLoggedIn) {
     localStorage.setItem("currUser", JSON.stringify(currUser));
-    if (isAdmin) return <AdminDashboard users={users} logout={logout} />;
-    else
-      return (
-        <UserDashboard
-          users={users}
-          currUser={currUser}
-          setCurrUser={setCurrUser}
-          logout={logout}
-        />
-      );
+    if (isAdmin) {
+      window.location = "/admin";
+    } else {
+      window.location = "/dashboard";
+    }
   }
 
   return (

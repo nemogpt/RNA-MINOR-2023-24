@@ -3,8 +3,6 @@ import { formatNumber } from './Utils';
 
 export const UserContent = (props) => {
     const {client} = props
-    console.log(client);
-
     const transactions = client.transactions.map((transaction, index) => {
       const className = index % 2 === 0 ? 'even' : 'odd'
       return <div className={`transaction-item ${className}`}>

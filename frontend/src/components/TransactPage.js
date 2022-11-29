@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { formatNumber, findAccount, transact, trim } from "./Utils";
 import { toast } from 'react-toastify';
+import axios from "axios";
 import 'react-toastify/dist/ReactToastify.css';
 
 toast.configure()
