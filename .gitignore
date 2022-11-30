@@ -3,3 +3,4 @@ venv/
 **/.flaskenv
 project/
 RNA-PROJECT.pub
+cust_details.txt
