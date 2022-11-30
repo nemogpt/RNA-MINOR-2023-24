@@ -46,7 +46,7 @@ def getProfile(current_user, isAdmin):
     del card['_sa_instance_state']
 
     txnData = []
-    for td in txn_dset:
+    for td in txn_dset.scalars():
         td = vars(td)
         del td['_sa_instance_state']
         txnData.append(td)

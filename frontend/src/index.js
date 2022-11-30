@@ -11,6 +11,7 @@ import { TransactPage } from "./components/TransactPage";
 import axios from "axios";
 // import { UserDashboard } from "./components/UserDashboard";
 import { UserContent } from "./components/UserContent";
+import { Notifications } from "react-push-notification";
 
 const loadAdminData = async () => {
   const token = localStorage.getItem("token");
@@ -38,7 +39,7 @@ const loadUserData = async () => {
   });
   console.log(req.data);
   return req.data;
-}
+};
 
 const router = createBrowserRouter([
   {
@@ -72,25 +73,26 @@ const router = createBrowserRouter([
   {
     path: "/withdraw",
     element: <TransactPage type="subtract" page="withdraw" />,
-    loader: loadAdminData,
+    loader: loadUserData,
   },
   {
     path: "/dashboard",
     element: <UserContent />,
-    loader: loadUserData
+    loader: loadUserData,
   },
   {
-    path: '/transfer',
+    path: "/transfer",
     element: <TransferPage isClient />,
     loader: loadUserData,
   },
   {
-    path: '/withdraw',
-  }
+    path: "/withdraw",
+  },
 ]);
 
 ReactDOM.render(
   <React.StrictMode>
+    <Notifications />
     <RouterProvider router={router} />
   </React.StrictMode>,
   document.getElementById("root")

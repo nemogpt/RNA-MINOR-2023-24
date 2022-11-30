@@ -59,25 +59,41 @@ export const TransferPage = (props) => {
     if (amount <= 0) return false;
 
     if (sender.length !== 0 && receiver.length !== 0) {
-      const request = await axios.post(
-        "http://localhost:5000/txn/transferadmin",
-        {
-          from_acc: sender.account_no,
-          to_acc: receiver.account_no,
-          amount,
-        },
-        {
-          headers: {
-            "x-access-token": token,
+      let request;
+      if (!isClient) {
+        request = await axios.post(
+          "http://localhost:5000/txn/transferadmin",
+          {
+            from_acc: sender,
+            to_acc: receiver,
+            amount,
           },
-        }
-      );
+          {
+            headers: {
+              "x-access-token": token,
+            },
+          }
+        );
+      } else {
+        request = await axios.post(
+          "http://localhost:5000/txn/transfer",
+          {
+            to_acc: receiver,
+            amount,
+          },
+          {
+            headers: {
+              "x-access-token": token,
+            },
+          }
+        );
+      }
 
       console.log(request.data);
       if (request.status === 200) {
         toast.success(request.data?.msg, { position: "top-center" });
         // setSender({ ...sender, balance: request.data?.f_bal });
-        toast.info(`Your Balance is ${request.data?.f_bal}`, {
+        toast.info(`Your Balance is ${request.data?.balance}`, {
           position: "top-center",
         });
       } else {

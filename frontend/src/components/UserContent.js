@@ -14,24 +14,25 @@ export const UserContent = (props) => {
       <h1 className="main">My Account</h1>
       <Account
         type={client.ac_type}
-        accountNumber={client.number}
+        accountNumber={client.account_no}
         balance={client.balance}
-        full_name={client.full_name}
+        fullname={client.full_name}
       />
       <div id="transactions">
         <h2>Transactions</h2>
         <div id="transaction-div">
+          <div className="transaction-item">
+            <div style={{ fontWeight: "bold" }}>Timestamp</div>
+            <div></div>
+            <div style={{ fontWeight: "bold" }}>Amount</div>
+          </div>
           {client.transactions.map((transaction, index) => {
             const className = index % 2 === 0 ? "even" : "odd";
             return (
               <div className={`transaction-item ${className}`}>
-                <div>{transaction.date}</div>
-                <div>{transaction.title}</div>
-                <div>
-                  {transaction.type === "debit"
-                    ? formatNumber(transaction.amount * -1)
-                    : formatNumber(transaction.amount)}
-                </div>
+                <div>{transaction.timestamp}</div>
+                <div></div>
+                <div>{formatNumber(transaction.amount * -1)}</div>
               </div>
             );
           })}

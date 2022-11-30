@@ -1,10 +1,5 @@
 import React from 'react';
 import './App.css';
-import LoginPage from './components/LoginPage';
-import {
-  RouterProvider,
-  Route
-} from 'react-router-dom'
 
 
 
@@ -16,7 +11,9 @@ function App() {
     window.location = '/login'
   }
   return (
-    <div></div>
+    <div>
+      
+    </div>
   );
 }
 

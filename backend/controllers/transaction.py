@@ -1,5 +1,6 @@
 import json
 import argon2
+import random
 from flask import Blueprint, jsonify, request
 from middleware.auth import token_required
 from models.customer import Customer
@@ -13,6 +14,18 @@ from datetime import datetime
 from util import computeDistance, isWithinLimit
 
 transaction_bp = Blueprint('transaction_blueprint', __name__)
+
+
+@transaction_bp.route('/getatms', methods=["GET"])
+def get_atms():
+    atm_stmt = select(Atm)
+    atm_dset = db.session.execute(atm_stmt)
+    atms = []
+    for a in atm_dset.scalars():
+        a = vars(a)
+        del a['_sa_instance_state']
+        atms.append(a)
+    return jsonify(atms), 200
 
 
 @transaction_bp.route('/', methods=["GET"])
@@ -39,7 +52,8 @@ def _validate_pin(pin):
 
 
 def verify_Account(data):
-    custDetails = select(Customer).where(Customer.customer_id==data['username'])
+    custDetails = select(Customer).where(
+        Customer.customer_id == data['username'])
     cust_dset = db.session.execute(custDetails)
     custDetails = None
     for c in cust_dset.scalars():
@@ -47,7 +61,7 @@ def verify_Account(data):
     print(custDetails)
     if custDetails is None:
         return False
-    cardDetails = select(Card).where(Card.ac_no==custDetails.account_no)
+    cardDetails = select(Card).where(Card.ac_no == custDetails.account_no)
     card_dset = db.session.execute(cardDetails)
     cardDetails = None
     for c in card_dset.scalars():
@@ -57,10 +71,10 @@ def verify_Account(data):
     edate = datetime.strptime(data['exp_date'], '%y-%M-%d')
     exp_date = datetime.combine(edate, datetime.min.time())
     or_exp_date = datetime.combine(cardDetails.exp_date, datetime.min.time())
-    print(data['exp_date'], exp_date)
-    if(cardDetails.card_no!=data['card_no'] or cardDetails.cvv!=data['cvv'] or cardDetails.pin!=data['pin'] or or_exp_date>=exp_date):
+    if (cardDetails.card_no != data['card_no'] or cardDetails.cvv != data['cvv'] or cardDetails.pin != data['pin'] or or_exp_date < exp_date):
         return False
     return True
+
 
 @transaction_bp.route('/processWithdraw', methods=['POST'])
 @token_required
@@ -77,9 +91,14 @@ def processWithdraw(current_user, isAdmin):
     lng = body['lng']
     user_loc = (lat, lng)
 
+    dist = computeDistance(atm_loc, user_loc)
+    print(f"ATM LOC: {atm_loc} and USER LOC: {user_loc}")
+    print(f"{dist} km from ATM")
+
     if (not isWithinLimit(user_loc, atm_loc)):
         return jsonify({'msg': "Location Mismatch"}), 401
     return jsonify({'msg': "Proceed with Transaction"}), 200
+
 
 @transaction_bp.route("/withdraw", methods=["POST"])
 @token_required
@@ -89,7 +108,7 @@ def withdraw(current_user, isAdmin):
     username = current_user
     card_no = debitData['card_no']
     exp_date = debitData['exp_data']
-    mth,yr = exp_date.split('/')
+    mth, yr = exp_date.split('/')
     exp_date = f"{yr}-{mth}-30"
     pin = debitData['pin']
     atm = debitData['atm']
@@ -105,41 +124,42 @@ def withdraw(current_user, isAdmin):
     userLoc = (lat, lng)
     dist = computeDistance(atm_loc, userLoc)
     print(f"{dist} km from ATM")
-    if (not isWithinLimit(userLoc, atm_loc)):
-        return jsonify({'msg': 'Location Mismatch'}),401
-    if(_validate_pin(pin)):
-        ph = PasswordHasher() 
-        pin_hash=ph.hash(pin) 
+    if (_validate_pin(pin)):
+        ph = PasswordHasher()
+        pin_hash = ph.hash(pin)
     cvv = debitData['cvv']
-    data={
-        "username":current_user,
-        "card_no":card_no,
-        "exp_date":exp_date,
-        "pin":pin,
-        "cvv":cvv
+    data = {
+        "username": current_user,
+        "card_no": card_no,
+        "exp_date": exp_date,
+        "pin": pin,
+        "cvv": cvv
     }
-    if(verify_Account(data)):
-        custDetails = select(Customer).where(Customer.customer_id==data['username'])
+    if (verify_Account(data)):
+        custDetails = select(Customer).where(
+            Customer.customer_id == data['username'])
         c_dset = db.session.execute(custDetails)
         custDetails = None
         for c in c_dset.scalars():
             custDetails = c
-        cardDetails = select(Card).where(Card.ac_no==custDetails.account_no)
+        cardDetails = select(Card).where(Card.ac_no == custDetails.account_no)
         c_dset = db.session.execute(cardDetails)
         cardDetails = None
         for c in c_dset.scalars():
             cardDetails = c
-        if(cardDetails.card_type):
-            avail = select(Customer.balance).where(Customer.customer_id==username)
+        if (cardDetails.card_type):
+            avail = select(Customer.balance).where(
+                Customer.customer_id == username)
             av_dset = db.session.execute(avail)
             avail = None
             for a in av_dset.scalars():
                 avail = a
-            amount = debitData['amount']
+            amount = float(debitData['amount'])
             if avail < amount:
                 return jsonify({"error": "Balance insufficient"})
             else:
-                query=update(Customer).where(Customer.customer_id==username).values(balance=avail-amount)
+                query = update(Customer).where(
+                    Customer.customer_id == username).values(balance=avail-amount)
                 db.session.execute(query)
                 db.session.commit()
                 query = insert(Transaction).values()  # To complete
@@ -158,7 +178,6 @@ def transferAdmin(current_user, isAdmin):
         return jsonify({'msg': 'Unauthorized'}), 401
     # Transfer money to another account
     transferData = request.json
-    print(transferData)
     # username = current_user
     amount = float(transferData['amount'])
     to_acc = transferData['to_acc']
@@ -169,7 +188,7 @@ def transferAdmin(current_user, isAdmin):
     fa = None
     for avail in from_avail.scalars():
         fa = avail
-    
+
     to_avail = select(Customer).where(
         Customer.account_no == to_acc)
     to_avail = db.session.execute(to_avail)
@@ -186,7 +205,7 @@ def transferAdmin(current_user, isAdmin):
     db.session.execute(query)
 
     query = insert(Transaction).values(
-        txn_id=random.randint(1000000000,9999999999),
+        txn_id=random.randint(1000000000, 9999999999),
         from_acc=fa.account_no,
         to_acc="000000",
         amount=amount,
@@ -194,26 +213,52 @@ def transferAdmin(current_user, isAdmin):
     )
     db.session.execute(query)
 
+    db.session.commit()
+
     return jsonify({'msg': f"Withdraw Successful from {from_acc} to {to_acc}", 'amount': amount, 'f_bal': fa.balance, 't_bal': ta.balance}), 200
 
 
 @transaction_bp.route("/transfer", methods=["POST"])
 @token_required
-def transfer(current_user):
-    transferData = request.json()
+def transfer(current_user, isAdmin):
+    transferData = request.json
     customer_id_from = current_user
     amount = float(transferData['amount'])
     to_acc = transferData['to_acc']
-    from_acc = transferData['from_acc']
-    from_avail = select(Customer.balance).where(customer_id=customer_id_from)
-    from_avail = from_avail.scalar()[0]
+    print(to_acc, transferData)
+    # from_acc = transferData['from_acc']
+    from_avail = select(Customer).where(
+        Customer.customer_id == customer_id_from)
+    fdset = db.session.execute(from_avail)
+    from_avail = None
+    # from_avail = from_avail.scalar()[0]
+    for f in fdset.scalars():
+        from_avail = f
+    ac_no = from_avail.account_no
+    from_avail = from_avail.balance
     to_avail = select(Customer.balance).where(
-        customer_id=to_acc['customer_id'])
-    to_avail = to_avail.scalar()[0]
-
-    Customer.update().where(customer_id=customer_id_from).values(
+        Customer.account_no == to_acc)
+    # to_avail = to_avail.scalar()[0]
+    tdset = db.session.execute(to_avail)
+    to_avail = None
+    for t in tdset.scalars():
+        to_avail = t
+    print(from_avail, to_avail)
+    query = update(Customer).where(Customer.customer_id == customer_id_from).values(
         balance=from_avail-amount)
-    Customer.update().where(account_no=to_acc['to_acc']).values(
+    db.session.execute(query)
+    query = update(Customer).where(Customer.account_no == to_acc).values(
         balance=to_avail+amount)
 
-    return jsonify({'msg': 'Withdraw Successful', 'amount': amount}), 200
+    query = insert(Transaction).values(
+        txn_id=random.randint(1000000000, 9999999999),
+        from_acc=ac_no,
+        to_acc=to_acc,
+        amount=amount,
+        timestamp=datetime.now().strftime("%Y-%m-%d")
+    )
+    db.session.execute(query)
+
+    db.session.commit()
+
+    return jsonify({'msg': 'Transfer Successful', 'amount': amount, "balance": from_avail - amount}), 200
