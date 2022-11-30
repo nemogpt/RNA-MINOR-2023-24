@@ -15,7 +15,7 @@ fakerObj.add_provider(person)
 fakerObj.add_provider(company)
 
 db_connection = psycopg2.connect(
-    database="rna", user="minor_rna", password="dev", host="localhost", port=5432)
+    database="rna", user="minor", password="dev", host="localhost", port=5432)
 
 db_connection.set_session(autocommit=True)
 db_cursor = db_connection.cursor()

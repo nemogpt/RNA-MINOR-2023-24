@@ -9,7 +9,7 @@ import { CreateAccount } from "./components/CreateAccount";
 import { TransferPage } from "./components/TransferPage";
 import { TransactPage } from "./components/TransactPage";
 import axios from "axios";
-import { UserDashboard } from "./components/UserDashboard";
+// import { UserDashboard } from "./components/UserDashboard";
 import { UserContent } from "./components/UserContent";
 
 const loadAdminData = async () => {
@@ -61,7 +61,7 @@ const router = createBrowserRouter([
   },
   {
     path: "/transferadmin",
-    element: <TransferPage />,
+    element: <TransferPage isClient={false} />,
     loader: loadAdminData,
   },
   {
@@ -81,8 +81,11 @@ const router = createBrowserRouter([
   },
   {
     path: '/transfer',
-    element: <TransferPage isClient="true" />,
+    element: <TransferPage isClient />,
     loader: loadUserData,
+  },
+  {
+    path: '/withdraw',
   }
 ]);
 

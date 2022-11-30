@@ -9,52 +9,28 @@ toast.configure();
 
 export const TransferPage = (props) => {
   const { isClient, client } = props;
-  const users = useLoaderData();
+  const user = useLoaderData();
   const token = localStorage.getItem("token");
 
   // useState Hooks
-  const [receivers, setReceivers] = useState(users);
-  const [sender, setSender] = useState(isClient ? client : { balance: 0 });
-  const [receiver, setReceiver] = useState({ balance: 0 });
+  // const [receivers, setReceivers] = useState(users);
+  const [sender, setSender] = useState(isClient ? user : "");
+  const [receiver, setReceiver] = useState("");
   const [transferAmount, setTransferAmount] = useState(0);
 
   const senderSelected = (event) => {
     const accountNumber = event.target.value;
-
-    let sender = null;
-
-    users.forEach((user) => {
-      if (user.account_no === accountNumber) {
-        sender = user;
-      }
-    });
-
-    const newUsers = users.filter((user, index) => {
-      return user.account_no !== accountNumber;
-    });
-
-    setSender(sender);
-    setReceivers(newUsers);
-    setReceiver({ account_no: 0, balance: 0 });
+    setSender(user);
   };
 
   const receiverSelected = (event) => {
     const accountNumber = event.target.value;
-
-    let receiver = null;
-
-    users.forEach((user) => {
-      if (user.account_no === accountNumber) {
-        receiver = user;
-      }
-    });
-
-    setReceiver(receiver);
+    setReceiver(accountNumber);
   };
 
   let senders = null;
   if (!isClient) {
-    senders = users.map((user) => {
+    senders = user.map((user) => {
       return (
         <option value={user.account_no}>
           {user.full_name} #{user.account_no}
@@ -63,17 +39,17 @@ export const TransferPage = (props) => {
     });
   }
 
-  const newReceivers = receivers.map((receiver) => {
-    if (sender.account_no !== receiver.account_no) {
-      return (
-        <option value={receiver.account_no}>
-          {receiver.full_name} #{receiver.account_no}
-        </option>
-      );
-    } else {
-      return <></>;
-    }
-  });
+  // const newReceivers = receivers.map((receiver) => {
+  //   if (sender.account_no !== receiver.account_no) {
+  //     return (
+  //       <option value={receiver.account_no}>
+  //         {receiver.full_name} #{receiver.account_no}
+  //       </option>
+  //     );
+  //   } else {
+  //     return <></>;
+  //   }
+  // });
 
   const transferFund = async (event) => {
     event.preventDefault();
@@ -82,52 +58,7 @@ export const TransferPage = (props) => {
     );
     if (amount <= 0) return false;
 
-    if (
-      sender.account_no !== 0 &&
-      receiver.account_no !== 0 &&
-      receiver.account_no
-    ) {
-      // let senderSuccess = false;
-      // users.forEach((user) => {
-      //   if (user.account_no === sender.account_no) {
-      //     if (user.balance - amount >= 0) {
-      //       user.balance -= amount;
-
-      //       // console.log(user.transactions);
-      //       // user.transactions.unshift({
-      //       //   title: `Fund transfer to ${receiver.full_name} #${receiver.account_no}`,
-      //       //   amount: amount,
-      //       //   type: "debit",
-      //       //   date: getDateToday(),
-      //       // });
-
-      //       setSender(user);
-      //       senderSuccess = true;
-      //     }
-      //   }
-      // });
-
-      // // add to receiver
-      // if (senderSuccess) {
-      //   users.forEach((user) => {
-      //     if (user.account_no === receiver.account_no) {
-      //       user.balance += amount;
-      //       user.transactions.unshift({
-      //         title: `Fund transfer from ${sender.full_name} #${receiver.account_no}`,
-      //         amount: amount,
-      //         type: "credit",
-      //         date: getDateToday(),
-      //       });
-      //       setReceiver(user);
-      //     }
-      //   });
-
-      //   toast.success("Transferred Successfully", { position: "top-center" });
-      //   setTransferAmount(0);
-      // } else {
-      //   toast.error("Transactions Failed", { position: "top-center" });
-      // }
-
+    if (sender.length !== 0 && receiver.length !== 0) {
       const request = await axios.post(
         "http://localhost:5000/txn/transferadmin",
         {
@@ -145,8 +76,10 @@ export const TransferPage = (props) => {
       console.log(request.data);
       if (request.status === 200) {
         toast.success(request.data?.msg, { position: "top-center" });
-        setSender({...sender, balance: request.data?.f_bal})
-        setReceiver({...receiver, balance: request.data?.t_bal})
+        // setSender({ ...sender, balance: request.data?.f_bal });
+        toast.info(`Your Balance is ${request.data?.f_bal}`, {
+          position: "top-center",
+        });
       } else {
         toast.error("Error Occurred", { position: "top-center" });
       }
@@ -174,7 +107,7 @@ export const TransferPage = (props) => {
       <input
         type="text"
         name="sender"
-        value={`${client.full_name} #${client.acc_no}`}
+        value={`${user.full_name} #${user.account_no}`}
         disabled
       />
     );
@@ -186,7 +119,12 @@ export const TransferPage = (props) => {
         <h1>Fund Transfer</h1>
         {senderField}
         <label>Current balance</label>
-        <input type="text" className="right" value={sender.balance} disabled />
+        <input
+          type="text"
+          className="right"
+          value={isClient ? user.balance : sender.balance}
+          disabled
+        />
         <label>Amount to Transfer</label>
         <input
           type="text"
@@ -196,22 +134,15 @@ export const TransferPage = (props) => {
           autoComplete="off"
           className="right"
         />
-        <hr />
-        <select
-          value={receiver.account_no || 0}
-          onChange={receiverSelected}
-          name="receiver"
-        >
-          <option>Select Receiver</option>
-          {newReceivers}
-        </select>
-        <label>Current balance</label>
+        <label>Receiver A/c Number</label>
         <input
-          type="text"
-          className="right"
-          value={receiver.balance}
-          disabled
+          value={receiver}
+          onChange={(e) => setReceiver(e.target.value)}
+          name="receiver"
+          type={"text"}
+          placeholder="Enter A/c No of Reciever"
         />
+        <hr />
         <input type="submit" className="btn" value="Transfer Fund" />
       </form>
     </section>

@@ -129,8 +129,6 @@ def withdraw(current_user, isAdmin):
         cardDetails = None
         for c in c_dset.scalars():
             cardDetails = c
-        # cardDetails=cardDetails.scalar()[0]
-        print(cardDetails.card_type)
         if(cardDetails.card_type):
             avail = select(Customer.balance).where(Customer.customer_id==username)
             av_dset = db.session.execute(avail)
@@ -144,6 +142,7 @@ def withdraw(current_user, isAdmin):
                 query=update(Customer).where(Customer.customer_id==username).values(balance=avail-amount)
                 db.session.execute(query)
                 db.session.commit()
+                query = insert(Transaction).values()  # To complete
                 return jsonify({"success": "Withdrawl successful"})
     return (jsonify({
         "status": 401,
