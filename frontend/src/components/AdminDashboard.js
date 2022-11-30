@@ -21,36 +21,6 @@ export const AdminDashboard = (props) => {
   const [isUpdate, setIsUpdate] = useState(false);
   const [newAccount, setNewAccount] = useState(null);
 
-  // useEffect Hooks
-
-  // useEffect(() => {
-  //     if(deleteUser !== null) {
-  //         const filteredUsers = users.filter((user, index) => {
-  //             return index !== deleteUser
-  //         });
-
-  //         setUsers(filteredUsers);
-  //         setDeleteUser(null);
-  //         // save
-  //         localStorage.setItem('users', JSON.stringify(filteredUsers));
-  //     }
-  // }, [deleteUser]);
-  // useEffect(() => {
-  //     if(isUpdate) {
-  //         const filteredUsers = users.map((user, index) => {
-  //             if(user.number === newAccount.number) {
-  //                 user = {...user, ...newAccount};
-  //             }
-  //             return user;
-  //         });
-
-  //         setUsers(filteredUsers);
-  //         setIsUpdate(false);
-  //         // save
-  //         localStorage.setItem('users', JSON.stringify(filteredUsers));
-  //     }
-  // }, [isUpdate]);
-
   let editPopup = null;
   if (editingUser !== false && editUser) {
     console.log("it is being executed");

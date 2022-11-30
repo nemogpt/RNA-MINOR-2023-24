@@ -21,8 +21,8 @@ auth_bp = Blueprint('authentication_blueprint', __name__)
 @auth_bp.route('/', methods=["GET", "OPTIONS"])
 @token_required
 def getProfile(current_user, isAdmin):
-    if not isAdmin:
-        return jsonify({'msg': 'Unauthorized'}), 401
+    # if not isAdmin:
+    #     return jsonify({'msg': 'Unauthorized'}),401
     customer_dt_stmt = select(Customer).where(
         Customer.customer_id == current_user)
     customer_dset = db.session.execute(customer_dt_stmt)
@@ -72,6 +72,7 @@ def login():
     customer_dataset = db.session.execute(customer_data_stmt)
     customer_data = None
     for cd in customer_dataset.scalars():
+        print(cd)
         customer_data = cd
     pwd_hash = customer_data.password
     ph = PasswordHasher()
