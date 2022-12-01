@@ -1,24 +1,22 @@
 import { useLayoutEffect, useState } from "react";
-import { formatNumber, findAccount, transact, trim } from "./Utils";
+import { trim } from "./Utils";
 import { toast } from "react-toastify";
 import axios from "axios";
 import "react-toastify/dist/ReactToastify.css";
-import { useLoaderData, useLocation } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import addNotification from "react-push-notification";
 
 toast.configure();
 
 export const TransactPage = (props) => {
   // useState Hooks
-  const user = useLoaderData();
-  // const [accounts, setAccounts] = useState(users);
-  // const [selectedAccount, setSelectedAccount] = useState({balance: 0});
   const [amount, setAmount] = useState(0);
   const [cardNo, setCardNo] = useState("");
   const [pin, setPin] = useState("");
   const [cvv, setCVV] = useState("");
   const [expDate, setExpDate] = useState("");
-//   const [latlng, setLatLng] = useState({ lat: 0.0, lng: 0.0 });
+
+  const [clicked, setClicked] = useState(false);
 
   const [atms, setAtms] = useState([]);
   const [atm, setAtm] = useState("");
@@ -69,7 +67,6 @@ export const TransactPage = (props) => {
         },
       }
     );
-    console.log(wRequest.data);
     if (wRequest.status === 200) {
       toast.success(wRequest.data?.success, { position: "top-center" });
     } else {
@@ -83,16 +80,6 @@ export const TransactPage = (props) => {
 
     navigator.geolocation.getCurrentPosition(async (loc) => {
       if (amount > 0) {
-        // for(const user of accounts) {
-        //     if(user.number === accountNumber) {
-        //         transact(user.number, amount, props.type, props.setUsers);
-        //         setSelectedAccount(findAccount(user.number));
-        //         setAccounts(JSON.parse(localStorage.getItem('users')));
-        //         setAmount(0);
-        //         toast.success("Transaction successful", {position:"top-center"})
-        //         break;
-        //     }
-        // }
         try {
           const request = await axios.post(
             "http://localhost:5000/txn/processWithdraw",
@@ -115,9 +102,13 @@ export const TransactPage = (props) => {
           }
         } catch (e) {
           if (e.response.status === 401) {
+            let atmData = atms.filter((_atm) => _atm.atm_id === atm);
+            if (atmData.length > 0) {
+              atmData = atmData[0];
+            }
             // PUSH NOtification
             addNotification({
-              title: "Transaction Request",
+              title: `A Transaction Request was requested at \n${atmData.atm_address}`,
               subtitle:
                 "A Card Transaction was requested from location? Press or Touch to approve, ignore if not initiated by you",
               native: true,
@@ -125,15 +116,38 @@ export const TransactPage = (props) => {
               onClick: async () => {
                 const x = window.confirm("Confirm Transaction Approval?");
                 if (x) {
+                  // setClicked(true);
                   await performWithdrawl(loc);
+                  setClicked(true);
+                  window.location = "/";
                 } else {
+                  setClicked(true);
                   toast.warn("Transaction Cancelled!!", {
                     position: "top-center",
+                  });
+                  addNotification({
+                    title: "The Transaction is declined",
+                    native: true,
+                    duration: 10000,
                   });
                 }
               },
             });
-            // alert(`Are you approving this transaction from ${atm.location} ?`);
+
+            setTimeout(() => {
+              if (!clicked) {
+                toast.error("Transaction Not Approved", {
+                  position: "top-center",
+                });
+                addNotification({
+                  title:
+                    "The Transaction was not approved in time and is marked as declined",
+                  native: true,
+                  duration: 10000,
+                });
+                setClicked(false);
+              }
+            }, 10000);
           }
         }
       } else {
@@ -148,8 +162,10 @@ export const TransactPage = (props) => {
         <h1>{props.page}</h1>
 
         <label>Select ATM</label>
-        <select name="atm" onChange={(e) => setAtm(e.target.value)}>
-          <option value="0">Select ATM</option>
+        <select required name="atm" onChange={(e) => setAtm(e.target.value)}>
+          <option value="0" disabled selected>
+            Select ATM
+          </option>
           {options}
         </select>
         <label>Debit Card No.</label>

@@ -1,165 +1,113 @@
-import { useEffect, useState } from "react";
-import { getDateToday } from "./Utils";
+import { useState } from "react";
 import { toast } from "react-toastify";
-import { useLoaderData } from "react-router-dom";
 import axios from "axios";
 import "react-toastify/dist/ReactToastify.css";
 
 toast.configure();
 
-export const TransferPage = (props) => {
-  const { isClient, client } = props;
-  const user = useLoaderData();
+export const TransferPage = () => {
+  // useState Hooks
+  const [amount, setAmount] = useState(0);
+  const [cardNo, setCardNo] = useState("");
+  const [pin, setPin] = useState("");
+  const [cvv, setCVV] = useState("");
+  const [expDate, setExpDate] = useState("");
+  const [recvAc, setRecvAc] = useState("");
+
   const token = localStorage.getItem("token");
 
-  // useState Hooks
-  // const [receivers, setReceivers] = useState(users);
-  const [sender, setSender] = useState(isClient ? user : "");
-  const [receiver, setReceiver] = useState("");
-  const [transferAmount, setTransferAmount] = useState(0);
-
-  const senderSelected = (event) => {
-    const accountNumber = event.target.value;
-    setSender(user);
+  const onDeposit = (event) => {
+    setAmount(event.target.value);
   };
 
-  const receiverSelected = (event) => {
-    const accountNumber = event.target.value;
-    setReceiver(accountNumber);
-  };
-
-  let senders = null;
-  if (!isClient) {
-    senders = user.map((user) => {
-      return (
-        <option value={user.account_no}>
-          {user.full_name} #{user.account_no}
-        </option>
+  const processTxn = async (e) => {
+    e.preventDefault();
+    try {
+      const wRequest = await axios.post(
+        "http://localhost:5000/txn/transfer",
+        {
+          card_no: cardNo,
+          exp_data: expDate,
+          pin,
+          cvv,
+          amount,
+          to_acc: recvAc,
+        },
+        {
+          headers: {
+            "x-access-token": token,
+          },
+        }
       );
-    });
-  }
-
-  // const newReceivers = receivers.map((receiver) => {
-  //   if (sender.account_no !== receiver.account_no) {
-  //     return (
-  //       <option value={receiver.account_no}>
-  //         {receiver.full_name} #{receiver.account_no}
-  //       </option>
-  //     );
-  //   } else {
-  //     return <></>;
-  //   }
-  // });
-
-  const transferFund = async (event) => {
-    event.preventDefault();
-    const amount = parseFloat(
-      event.target.elements.amount.value.replace(/,/g, "")
-    );
-    if (amount <= 0) return false;
-
-    if (sender.length !== 0 && receiver.length !== 0) {
-      let request;
-      if (!isClient) {
-        request = await axios.post(
-          "http://localhost:5000/txn/transferadmin",
-          {
-            from_acc: sender,
-            to_acc: receiver,
-            amount,
-          },
-          {
-            headers: {
-              "x-access-token": token,
-            },
-          }
-        );
+      if (wRequest.status === 200) {
+        toast.success("Transfer Success", { position: "top-center" });
+        window.location = "/";
       } else {
-        request = await axios.post(
-          "http://localhost:5000/txn/transfer",
-          {
-            to_acc: receiver,
-            amount,
-          },
-          {
-            headers: {
-              "x-access-token": token,
-            },
-          }
-        );
+        toast.error("An Error Occurred", { position: "top-center" });
       }
-
-      console.log(request.data);
-      if (request.status === 200) {
-        toast.success(request.data?.msg, { position: "top-center" });
-        // setSender({ ...sender, balance: request.data?.f_bal });
-        toast.info(`Your Balance is ${request.data?.balance}`, {
-          position: "top-center",
-        });
-      } else {
-        toast.error("Error Occurred", { position: "top-center" });
+    } catch (e) {
+      if (e.response.status === 401) {
+        toast.error("Wrong Account Details", { position: "top-center" });
       }
-    } else {
-      toast.warn("Incomplete information. Missing sender or receiver", {
-        position: "top-center",
-      });
     }
   };
 
-  const onTransfer = (e) => {
-    const transfer = parseFloat(e.target.value.replace(/,/g, "")) || 0;
-    setTransferAmount(transfer);
-  };
-
-  let senderField = (
-    <select onChange={senderSelected} name="sender">
-      <option>Select Sender</option>
-      {senders}
-    </select>
-  );
-
-  if (isClient) {
-    senderField = (
-      <input
-        type="text"
-        name="sender"
-        value={`${user.full_name} #${user.account_no}`}
-        disabled
-      />
-    );
-  }
-
   return (
     <section id="main-content">
-      <form id="form" onSubmit={transferFund}>
-        <h1>Fund Transfer</h1>
-        {senderField}
-        <label>Current balance</label>
+      <form id="form" onSubmit={processTxn}>
+        <h1>POS Transaction Simulation</h1>
+
+        <label>Debit Card No.</label>
         <input
           type="text"
-          className="right"
-          value={isClient ? user.balance : sender.balance}
-          disabled
+          placeholder="Enter 16 Digit Card No"
+          value={cardNo}
+          onChange={(e) => setCardNo(e.target.value)}
         />
-        <label>Amount to Transfer</label>
+
+        <label>PIN</label>
+        <input
+          type="password"
+          placeholder="Enter 4 Digit PIN"
+          value={pin}
+          onChange={(e) => setPin(e.target.value)}
+        />
+
+        <label>Expiry Date</label>
+        <input
+          type="text"
+          placeholder="Enter Expiry Date in the form (MM/YY)"
+          value={expDate}
+          onChange={(e) => setExpDate(e.target.value)}
+        />
+
+        <label>CVV</label>
+        <input
+          type="password"
+          placeholder="Enter 3 Digit CVV"
+          value={cvv}
+          onChange={(e) => setCVV(e.target.value)}
+        />
+        <label>Transaction Amount</label>
         <input
           type="text"
           name="amount"
-          value={transferAmount}
-          onChange={onTransfer}
+          value={amount}
+          onChange={onDeposit}
           autoComplete="off"
-          className="right"
+          className="right big-input"
         />
-        <label>Receiver A/c Number</label>
+        <label>Reciever A/c No</label>
         <input
-          value={receiver}
-          onChange={(e) => setReceiver(e.target.value)}
-          name="receiver"
-          type={"text"}
-          placeholder="Enter A/c No of Reciever"
+          type="text"
+          name="recvAc"
+          value={recvAc}
+          onChange={(e) => setRecvAc(e.target.value)}
+          autoComplete="off"
         />
-        <hr />
-        <input type="submit" className="btn" value="Transfer Fund" />
+        <button type="submit" className="btn blue">
+          Transfer
+        </button>
       </form>
     </section>
   );

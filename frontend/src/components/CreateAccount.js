@@ -117,7 +117,7 @@ export const CreateAccount = (props) => {
           required
         />
 
-        <input value="Create Account" className="btn" type="submit" />
+        <input value="Create Account" className="btn green" type="submit" />
       </form>
     </section>
   );

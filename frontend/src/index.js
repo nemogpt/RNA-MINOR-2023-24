@@ -61,11 +61,6 @@ const router = createBrowserRouter([
     loader: loadAdminData,
   },
   {
-    path: "/transferadmin",
-    element: <TransferPage isClient={false} />,
-    loader: loadAdminData,
-  },
-  {
     path: "/deposit",
     element: <TransactPage type="add" page="deposit" />,
     loader: loadAdminData,
@@ -82,11 +77,7 @@ const router = createBrowserRouter([
   },
   {
     path: "/transfer",
-    element: <TransferPage isClient />,
-    loader: loadUserData,
-  },
-  {
-    path: "/withdraw",
+    element: <TransferPage />,
   },
 ]);
 

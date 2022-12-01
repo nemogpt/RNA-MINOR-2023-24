@@ -1,43 +1,39 @@
-import { useState, useEffect } from "react";
-import { AdminContent } from "./AdminContent";
-import { CreateAccount } from "./CreateAccount";
-import { TransferPage } from "./TransferPage";
-import { TransactPage } from "./TransactPage";
 import { Logo } from "./Logo";
-import { Routes, Route, Link, useLoaderData } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import axios from "axios";
+import { useLayoutEffect, useState } from "react";
 
 toast.configure();
 
-export const AdminDashboard = (props) => {
-  // useState Hooks
-  //   const [users, setUsers] = useState([]);
-  const users = useLoaderData();
-  const [editingUser, setEditingUser] = useState(null);
-  const [deleteUser, setDeleteUser] = useState(null);
-  const [editUser, setEditUser] = useState(false);
-  const [isUpdate, setIsUpdate] = useState(false);
-  const [newAccount, setNewAccount] = useState(null);
-
-  let editPopup = null;
-  if (editingUser !== false && editUser) {
-    console.log("it is being executed");
-    const user = users[editingUser];
-    editPopup = (
-      <AccountEdit
-        accountName={user.fullname}
-        accountNumber={user.number}
-        balance={user.balance}
-        setEditUser={setEditUser}
-        setIsUpdate={setIsUpdate}
-        setNewAccount={setNewAccount}
-      />
-    );
-  }
-
-  // React Router
+export const AdminDashboard = () => {
+  const location = useLocation();
+  const token = localStorage.getItem("token");
+  const [stats, setStats] = useState({});
+  const [loading, setLoading] = useState(true);
+  const [refresh, setRefresh] = useState(true);
+  useLayoutEffect(() => {
+    (async () => {
+      if (!token || !refresh) {
+        setLoading(false);
+        return;
+      }
+      try {
+        const req = await axios.get("http://localhost:5000/txn/stats", {
+          headers: {
+            "x-access-token": token,
+          },
+        });
+        setStats(req.data);
+        setLoading(false);
+      } catch (e) {
+        console.error(e);
+        setLoading(false);
+      }
+      setRefresh(false);
+    })();
+  }, [location, token, refresh]);
   return (
     <>
       <main>
@@ -55,173 +51,72 @@ export const AdminDashboard = (props) => {
               </Link>
             </li>
             <li>
-              <Link to="/transfer">
-                <i className="bx bx-transfer"></i> Fund Transfer
-              </Link>
-            </li>
-            <li>
-              <Link to="/deposit">
-                <i className="bx bx-money"></i> Deposit
-              </Link>
-            </li>
-            <li>
-              <Link to="/withdraw">
-                <i className="bx bx-log-out-circle"></i> Withdraw
-              </Link>
-            </li>
-            <li>
-              <Link onClick={props.logout}>
+              <Link
+                onClick={() => {
+                  localStorage.removeItem("token");
+                  localStorage.removeItem("currUser");
+                  window.location = "/";
+                }}
+              >
                 <i className="bx bx-log-out"></i> Logout
               </Link>
             </li>
           </ul>
         </section>
-        {/* <Routes>
-          <Route
-            path="/home"
-            element={
-              <>
-                <AdminContent
-                  users={users}
-                  editingUser={editingUser}
-                  setEditModal={setEditUser}
-                  setEditingUser={setEditingUser}
-                  setDeleteUser={setDeleteUser}
-                />
-                {editPopup}
-              </>
-            }
-          />
-          <Route
-            path="/create-account"
-            element={
-              <>
-                <CreateAccount  />
-              </>
-            }
-          />
-          <Route
-            path="/transfer"
-            element={
-              <>
-                <TransferPage users={users} setUsers={setUsers} />
-              </>
-            }
-          />
-          <Route
-            path="/deposit"
-            element={
-              <>
-                <TransactPage
-                  users={users}
-                  setUsers={setUsers}
-                  type="add"
-                  page="deposit"
-                />
-              </>
-            }
-          />
-          <Route
-            path="/withdraw"
-            element={
-              <>
-                <TransactPage
-                  users={users}
-                  setUsers={setUsers}
-                  type="subtract"
-                  page="withdraw"
-                />
-              </>
-            }
-          />
-        </Routes> */}
+        <section style={{ margin: "1.5rem" }}>
+          <h2>Transaction Data Analysis</h2>
+          {loading ? (
+            <span style={{ textAlign: "center" }}>Loading...</span>
+          ) : (
+            <div>
+              <img src={stats?.image} alt="Analysis" height={700} width={900} />
+              <h3 style={{ marginTop: "10px" }}>Statistics</h3>
+              <div
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  justifyContent: "space-between",
+                }}
+              >
+                <div>
+                  <h4 style={{ marginTop: "4px" }}>Max Transactions</h4>
+                  <table className="transaction-div">
+                    <tr className="transaction-item">
+                      <th>Year</th>
+                      <th>ATM Name</th>
+                      <th>Value</th>
+                    </tr>
+                    {stats?.stats.max.map((st, i) => (
+                      <tr key={i} className="transaction-item">
+                        <td>{st.year}</td>
+                        <td>{st.atm_name}</td>
+                        <td>{st.val}</td>
+                      </tr>
+                    ))}
+                  </table>
+                </div>
+                <div>
+                  <h4 style={{ marginTop: "4px" }}>Min Transactions</h4>
+                  <table className="transaction-div">
+                    <tr className="transaction-item">
+                      <th>Year</th>
+                      <th>ATM Name</th>
+                      <th>Value</th>
+                    </tr>
+                    {stats?.stats.min.map((st, i) => (
+                      <tr key={i} className="transaction-item">
+                        <td>{st.year}</td>
+                        <td>{st.atm_name}</td>
+                        <td>{st.val}</td>
+                      </tr>
+                    ))}
+                  </table>
+                </div>
+              </div>
+            </div>
+          )}
+        </section>
       </main>
     </>
-  );
-};
-
-const AccountEdit = (props) => {
-  const {
-    accountName,
-    accountNumber,
-    balance,
-    setEditUser,
-    setNewAccount,
-    setIsUpdate,
-  } = props;
-  const [account, setAccount] = useState({
-    fullname: accountName,
-    number: accountNumber,
-    balance: balance,
-  });
-
-  const closeUser = () => {
-    setEditUser(false);
-  };
-
-  const updateAccount = (event) => {
-    event.preventDefault();
-    console.log(account);
-    setNewAccount(account);
-    setIsUpdate(true);
-    setEditUser(false);
-  };
-
-  const editAccountName = (event) => {
-    const name = event.target.value;
-    setAccount({ ...account, ...{ fullname: name } });
-  };
-  const editAccountNumber = (event) => {
-    const number = event.target.value;
-    setAccount({ ...account, ...{ number: number } });
-  };
-  const editAccountBalance = (event) => {
-    const balance = event.target.value;
-    setAccount({ ...account, ...{ balance: parseFloat(balance) || 0 } });
-  };
-
-  // default return
-  return (
-    <div className="overlay">
-      <div className="modal">
-        <form onSubmit={updateAccount}>
-          <h2 className="title">Edit Account</h2>
-
-          <label>Account name</label>
-          <input
-            name="account-name"
-            onChange={editAccountName}
-            value={account.fullname}
-            autoComplete="off"
-          />
-
-          <label>Account number</label>
-          <input
-            type="text"
-            name="amount"
-            onChange={editAccountNumber}
-            disabled
-            value={account.number}
-            autoComplete="off"
-          />
-
-          <label>Balance</label>
-          <input
-            type="text"
-            name="balance"
-            onChange={editAccountBalance}
-            value={account.balance}
-            autoComplete="off"
-          />
-
-          <button type="button" onClick={closeUser} className="btn2 btn-muted">
-            Cancel
-          </button>
-          <button type="submit" className="btn2">
-            Update Account
-          </button>
-        </form>
-      </div>
-    </div>
   );
 };

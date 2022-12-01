@@ -4,3 +4,5 @@ venv/
 project/
 RNA-PROJECT.pub
 cust_details.txt
+backend/analysis/dataset.csv
+backend/analysis.png

@@ -1,7 +1,7 @@
 import json
 import argon2
 import random
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify, request, send_file
 from middleware.auth import token_required
 from models.customer import Customer
 from models.transaction import Transaction
@@ -9,9 +9,13 @@ from models.card import Card
 from models.atm import Atm
 from db import db
 from argon2 import PasswordHasher
-from sqlalchemy import select, insert, update, delete
+from sqlalchemy import select, insert, update
 from datetime import datetime
 from util import computeDistance, isWithinLimit
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import textwrap
 
 transaction_bp = Blueprint('transaction_blueprint', __name__)
 
@@ -162,7 +166,16 @@ def withdraw(current_user, isAdmin):
                     Customer.customer_id == username).values(balance=avail-amount)
                 db.session.execute(query)
                 db.session.commit()
-                query = insert(Transaction).values()  # To complete
+                query = insert(Transaction).values(
+                    txn_id=random.randint(1000000000, 9999999999),
+                    from_acc=custDetails.account_no,
+                    to_acc="000000",
+                    amount=amount,
+                    timestamp=datetime.now().strftime("%Y-%m-%d")
+                )
+                db.session.execute(query)
+
+                db.session.commit()
                 return jsonify({"success": "Withdrawl successful"})
     return (jsonify({
         "status": 401,
@@ -170,95 +183,164 @@ def withdraw(current_user, isAdmin):
         "msg": "Wrong account details"
     })), 401
 
-
-@transaction_bp.route("/transferadmin", methods=["POST"])
-@token_required
-def transferAdmin(current_user, isAdmin):
-    if not isAdmin:
-        return jsonify({'msg': 'Unauthorized'}), 401
-    # Transfer money to another account
-    transferData = request.json
-    # username = current_user
-    amount = float(transferData['amount'])
-    to_acc = transferData['to_acc']
-    from_acc = transferData['from_acc']
-    from_avail = select(Customer).where(
-        Customer.account_no == from_acc)
-    from_avail = db.session.execute(from_avail)
-    fa = None
-    for avail in from_avail.scalars():
-        fa = avail
-
-    to_avail = select(Customer).where(
-        Customer.account_no == to_acc)
-    to_avail = db.session.execute(to_avail)
-    ta = None
-    for avail in to_avail.scalars():
-        ta = avail
-
-    query = update(Customer).where(Customer.account_no == fa.account_no).values(
-        balance=fa.balance-amount)
-    db.session.execute(query)
-
-    query = update(Customer).where(Customer.account_no == ta.account_no).values(
-        balance=ta.balance+amount)
-    db.session.execute(query)
-
-    query = insert(Transaction).values(
-        txn_id=random.randint(1000000000, 9999999999),
-        from_acc=fa.account_no,
-        to_acc="000000",
-        amount=amount,
-        timestamp=datetime.now().strftime("%Y-%m-%d")
-    )
-    db.session.execute(query)
-
-    db.session.commit()
-
-    return jsonify({'msg': f"Withdraw Successful from {from_acc} to {to_acc}", 'amount': amount, 'f_bal': fa.balance, 't_bal': ta.balance}), 200
-
-
 @transaction_bp.route("/transfer", methods=["POST"])
 @token_required
 def transfer(current_user, isAdmin):
-    transferData = request.json
-    customer_id_from = current_user
-    amount = float(transferData['amount'])
-    to_acc = transferData['to_acc']
-    print(to_acc, transferData)
-    # from_acc = transferData['from_acc']
-    from_avail = select(Customer).where(
-        Customer.customer_id == customer_id_from)
-    fdset = db.session.execute(from_avail)
-    from_avail = None
-    # from_avail = from_avail.scalar()[0]
-    for f in fdset.scalars():
-        from_avail = f
-    ac_no = from_avail.account_no
-    from_avail = from_avail.balance
-    to_avail = select(Customer.balance).where(
-        Customer.account_no == to_acc)
-    # to_avail = to_avail.scalar()[0]
-    tdset = db.session.execute(to_avail)
-    to_avail = None
-    for t in tdset.scalars():
-        to_avail = t
-    print(from_avail, to_avail)
-    query = update(Customer).where(Customer.customer_id == customer_id_from).values(
-        balance=from_avail-amount)
-    db.session.execute(query)
-    query = update(Customer).where(Customer.account_no == to_acc).values(
-        balance=to_avail+amount)
+    debitData = request.json
+    username = current_user
+    card_no = debitData['card_no']
+    exp_date = debitData['exp_data']
+    mth, yr = exp_date.split('/')
+    exp_date = f"{yr}-{mth}-30"
+    pin = debitData['pin']
+    if (_validate_pin(pin)):
+        ph = PasswordHasher()
+        pin_hash = ph.hash(pin)
+    cvv = debitData['cvv']
+    data = {
+        "username": current_user,
+        "card_no": card_no,
+        "exp_date": exp_date,
+        "pin": pin,
+        "cvv": cvv
+    }
+    if (verify_Account(data)):
+        custDetails = select(Customer).where(
+            Customer.customer_id == data['username'])
+        c_dset = db.session.execute(custDetails)
+        custDetails = None
+        for c in c_dset.scalars():
+            custDetails = c
+        cardDetails = select(Card).where(Card.ac_no == custDetails.account_no)
+        c_dset = db.session.execute(cardDetails)
+        cardDetails = None
+        for c in c_dset.scalars():
+            cardDetails = c
+        if (cardDetails.card_type):
+            avail = select(Customer.balance).where(
+                Customer.customer_id == username)
+            av_dset = db.session.execute(avail)
+            avail = None
+            for a in av_dset.scalars():
+                avail = a
+            to_acc = debitData.get('to_acc', False)
+            to_avail = select(Customer.balance).where(
+                Customer.account_no == to_acc)
+            tdset = db.session.execute(to_avail)
+            to_avail = None
+            for t in tdset.scalars():
+                to_avail = t
+            amount = float(debitData['amount'])
+            if avail < amount:
+                return jsonify({"error": "Balance insufficient"})
+            else:
+                query = update(Customer).where(
+                    Customer.customer_id == username).values(balance=avail-amount)
+                db.session.execute(query)
+                db.session.commit()
 
-    query = insert(Transaction).values(
-        txn_id=random.randint(1000000000, 9999999999),
-        from_acc=ac_no,
-        to_acc=to_acc,
-        amount=amount,
-        timestamp=datetime.now().strftime("%Y-%m-%d")
-    )
-    db.session.execute(query)
+                if (to_acc):
+                    query = update(Customer).where(Customer.account_no == to_acc).values(
+                        balance=to_avail+amount)
+                    db.session.execute(query)
+                    db.session.commit()
 
-    db.session.commit()
+                    query = insert(Transaction).values(
+                        txn_id=random.randint(1000000000, 9999999999),
+                        from_acc=custDetails.account_no,
+                        to_acc=to_acc,
+                        amount=amount,
+                        timestamp=datetime.now().strftime("%Y-%m-%d")
+                    )
+                    db.session.execute(query)
+                    db.session.commit()
+                    return jsonify({"success": "Transfer Successful"}),200
+    return (jsonify({
+        "status": 401,
+        "msg": "Failed",
+        "msg": "Wrong account details"
+    })), 401
 
-    return jsonify({'msg': 'Transfer Successful', 'amount': amount, "balance": from_avail - amount}), 200
+
+@transaction_bp.route('/stats', methods=["GET"])
+@token_required
+def getStats(current_user, isAdmin):
+    if not isAdmin:
+        return jsonify({'msg': "Unauthorized"}), 401
+    df = pd.read_csv('./analysis/dataset.csv')
+    x = df.groupby(by=df['ATM Name'])
+    l = []
+    for i in df['ATM Name'].unique():
+        d = x.get_group(i).groupby(df['Transaction Date'])
+        l.append({i: d})
+    dict_atms = []
+
+    atms = df['ATM Name'].unique()
+    for i in atms:
+        a_df = df[df['ATM Name'] == i]
+        dict_atms.append(
+            {
+                'name': i,
+                'total_withdrawl': a_df['No Of Withdrawals'],
+            }
+        )
+    x = pd.to_datetime(df['Transaction Date'])
+    df['years'] = None
+    for i in range(len(df)):
+        df['years'][i] = x[i].year
+    yr_df = df['years'].unique()
+    atms = df['ATM Name'].unique()
+    txns = {}
+    for i in yr_df:
+        d = df[df['years'] == i]
+        txns[i] = {}
+        for j in atms:
+            at_df = d[d['ATM Name'] == j]
+            txns[i][j] = at_df['No Of Withdrawals'].sum()
+    # df.head()
+
+    yr_df = df['years'].unique()
+    atms = df['ATM Name'].unique()
+    txns = {}
+    for i in yr_df:
+        d = df[df['years'] == i]
+        txns[i] = {}
+        for j in atms:
+            at_df = d[d['ATM Name'] == j]
+            txns[i][j] = at_df['No Of Withdrawals'].sum()
+
+    fig, ax = plt.subplots(3, 3, figsize=(20, 20))
+    fig.suptitle("Analysis of ATM Transactions", fontsize=20)
+    j = 0
+    k = 0
+    for i in txns:
+        d_yr = txns[i]
+        x = [textwrap.fill(i, 10, break_long_words=True)
+             for i in list(d_yr.keys())]
+        y = list(d_yr.values())
+        color = random.choice(['r', 'g', 'b', 'c', 'y'])
+        ax[k][j].bar(x, y, color=color)
+        ax[k][j].set_title(f"ATM Transactions of Year {i}")
+        if j < 2:
+            j += 1
+        else:
+            k += 1
+            j = 0
+
+    plt.savefig('analysis.png')
+
+    stats_max = []
+    stats_min = []
+    for i in txns:
+        stats_max.append({'year': i, 'atm_name': max(
+            txns[i]), 'val': float(txns[i][max(txns[i])])})
+    for i in txns:
+        stats_min.append({'year': i, 'atm_name': min(
+            txns[i]), 'val': float(txns[i][min(txns[i])])})
+
+    return jsonify({'image': 'http://localhost:5000/txn/analysis.png', 'stats': {'max': stats_max, 'min': stats_min}}), 200
+
+
+@transaction_bp.route("/analysis.png", methods=["GET"])
+def send_analysis():
+    return send_file("analysis.png", mimetype="image/png")
