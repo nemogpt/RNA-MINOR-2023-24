@@ -9,7 +9,7 @@ def create_app():
     CORS(app, resources={r"/*": {"origins": ["http://localhost:3000", "http://127.0.0.1:3000"], "allow_headers": "*",
          "expose_headers": "*", 'SECRET_KEY': 'abcdefgjh'}}, supports_credentials=True)
 
-    app.config['SQLALCHEMY_DATABASE_URI'] = "postgresql://minor:dev@127.0.0.1:5432/rna"
+    app.config['SQLALCHEMY_DATABASE_URI'] = "postgresql://minor_rna:dev@127.0.0.1:5432/rna"
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     app.config['CORS_ALLOW_HEADERS'] = '*'
     app.config['CORS_EXPOSE_HEADERS'] = '*'
