@@ -72,10 +72,7 @@ def verify_Account(data):
         cardDetails = c
     if cardDetails is None:
         return False
-    edate = datetime.strptime(data['exp_date'], '%y-%M-%d')
-    exp_date = datetime.combine(edate, datetime.min.time())
-    or_exp_date = datetime.combine(cardDetails.exp_date, datetime.min.time())
-    if (cardDetails.card_no != data['card_no'] or cardDetails.cvv != data['cvv'] or cardDetails.pin != data['pin'] or or_exp_date.month != exp_date.month or or_exp_date.year != exp_date.year):
+    if (cardDetails.card_no != data['card_no'] or cardDetails.cvv != data['cvv'] or cardDetails.pin != data['pin']):
         return False
     return True
 
@@ -113,7 +110,7 @@ def withdraw(current_user, isAdmin):
     card_no = debitData['card_no']
     exp_date = debitData['exp_data']
     mth, yr = exp_date.split('/')
-    exp_date = f"{yr}-{mth}-30"
+    exp_date = f"{yr}-{mth}-28"
     pin = debitData['pin']
     atm = debitData['atm']
     atm_data = select(Atm).where(Atm.atm_id == atm)
@@ -135,7 +132,6 @@ def withdraw(current_user, isAdmin):
     data = {
         "username": current_user,
         "card_no": card_no,
-        "exp_date": exp_date,
         "pin": pin,
         "cvv": cvv
     }
