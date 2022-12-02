@@ -45,8 +45,9 @@ export const UserContent = () => {
             return (
               <div className={`transaction-item ${className}`}>
                 <div>
-                  {new Date(transaction.timestamp).toLocaleDateString("en-IN", {
+                  {new Date(transaction.timestamp).toLocaleString("UTC", {
                     dateStyle: "short",
+                    timeStyle: "short",
                   })}
                 </div>
                 <div>

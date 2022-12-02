@@ -10,7 +10,7 @@ from models.atm import Atm
 from db import db
 from argon2 import PasswordHasher
 from sqlalchemy import select, insert, update
-from datetime import datetime
+from datetime import datetime, timezone
 from util import computeDistance, isWithinLimit
 import pandas as pd
 import numpy as np
@@ -171,7 +171,7 @@ def withdraw(current_user, isAdmin):
                     from_acc=custDetails.account_no,
                     to_acc="000000",
                     amount=amount,
-                    timestamp=datetime.now().strftime("%Y-%m-%d")
+                    timestamp=datetime.now(tz=timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
                 )
                 db.session.execute(query)
 
@@ -250,7 +250,7 @@ def transfer(current_user, isAdmin):
                         from_acc=custDetails.account_no,
                         to_acc=to_acc,
                         amount=amount,
-                        timestamp=datetime.now().strftime("%Y-%m-%d")
+                        timestamp=datetime.now(tz=timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
                     )
                     db.session.execute(query)
                     db.session.commit()
