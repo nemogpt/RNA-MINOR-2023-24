@@ -32,7 +32,7 @@ def getProfile(current_user, isAdmin):
     cdata = vars(cdata)
 
     txn_stmt = select(Transaction).where(
-        Transaction.from_acc == cdata['account_no'])
+        Transaction.from_acc == cdata['account_no']).order_by(Transaction.timestamp.desc())
     txn_dset = db.session.execute(txn_stmt)
 
     card_stmt = select(Card).where(Card.ac_no == cdata['account_no'])
