@@ -40,10 +40,10 @@ export const Account = (props) => {
         </div>
       </div>
       {/* {action} */}
-      <div>
+      <div className="button-div">
         <button
           type="button"
-          class="btn green"
+          className="btn green"
           onClick={() => (window.location = "/transfer")}
         >
           Transfer Funds

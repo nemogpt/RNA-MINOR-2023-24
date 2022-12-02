@@ -49,7 +49,7 @@ export const AdminDashboard = () => {
               <Link to="/create-account">
                 <i className="bx bx-user-pin"></i> Create Account
               </Link>
-            </li>
+            </li> 
             <li>
               <Link
                 onClick={() => {
@@ -63,20 +63,16 @@ export const AdminDashboard = () => {
             </li>
           </ul>
         </section>
-        <section style={{ margin: "1.5rem" }}>
+        <section className="render-data-analysis">
           <h2>Transaction Data Analysis</h2>
           {loading ? (
             <span style={{ textAlign: "center" }}>Loading...</span>
           ) : (
-            <div>
+            <div className="render-data-div">
               <img src={stats?.image} alt="Analysis" height={700} width={900} />
-              <h3 style={{ marginTop: "10px" }}>Statistics</h3>
+              <h2 style={{ marginTop: "10px" }}>Statistics</h2>
               <div
-                style={{
-                  display: "flex",
-                  flexDirection: "column",
-                  justifyContent: "space-between",
-                }}
+                className="transactions-data"
               >
                 <div>
                   <h4 style={{ marginTop: "4px" }}>Max Transactions</h4>

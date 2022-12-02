@@ -2,11 +2,11 @@
 @import url("https://fonts.googleapis.com/css2?family=Montserrat:wght@400;800&display=swap");
 
 :root {
-  --primary-color: rgb(241, 241, 241);
+  --primary-color: rgb(255, 255, 255);
   --secondary-color: rgb(0, 181, 127);
   --tertiary-color: rgb(0, 141, 98);
   --primary-text-color: rgb(0, 0, 0);
-  --secondary-text-color: rgb(95, 95, 95);
+  --secondary-text-color: rgb(151, 151, 151);
   --shadow: 0px 1px 2px rgba(37, 37, 37, 0.4);
   --font-family: 'Montserrat', sans-serif;
 }
@@ -15,6 +15,7 @@
     padding: 0;
     margin: 0;
     box-sizing: border-box;
+    font-family: var(--font-family);
 }
 
 body {
@@ -69,7 +70,7 @@ h1, h2, h3 {
 #side-menu {
     font-size: 1rem;
     padding: 1.2rem;
-    background-color: white;
+    background-color: rgb(242, 242, 242);
 }
 
 #side-menu ul {
@@ -163,7 +164,11 @@ h1, h2, h3 {
 }
 
 .details {
-  flex-direction: column;
+  flex-direction: column; 
+}
+
+.details > *{
+  padding: 10px;
 }
 
 #actions {
@@ -278,6 +283,16 @@ label {
   color: var(--primary-text-color);
   background-color: var(--primary-color);
   border: 1px solid var(--text-color);
+}
+
+.button-div {
+  display: grid;
+
+}
+
+.button-div button{
+  margin: 1rem auto;
+  width: 30%;
 }
 
 .btn, .btn2 {
@@ -461,4 +476,28 @@ input:disabled {
 
 .title {
   text-transform: capitalize;
+}
+
+.render-data-analysis {
+  margin: 0 1.2rem;
+  text-align: center;
+}
+
+.render-data-analysis h2 {
+  margin: 2.5rem;
+}
+
+.transactions-data {
+  margin: 2rem 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.transactions-data div {
+  margin: 1rem 2rem;
+}
+
+.render-data-div h2 {
+  margin: 2rem;
 }
