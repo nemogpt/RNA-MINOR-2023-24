@@ -87,15 +87,20 @@ def login():
 
 @auth_bp.route("/check_location", methods=["POST"])
 def check_location():
-    atm_location_stmt = select(Atm).where(Atm.atm_id == "55919391")
+    data = request.json
+    atm_id = data['atm']
+    lat = data['lat']
+    lng = data['lng']
+    atm_location_stmt = select(Atm).where(Atm.atm_id == atm_id)
     atm_dset = db.session.execute(atm_location_stmt)
     atm_data = None
     for atm_dt in atm_dset.scalars():
         atm_data = atm_dt
-    user_location = request.json['user_location']
+    user_location = (lat, lng)
     atm_location = atm_data.location
 
-    return jsonify({'result': isWithinLimit(user_location, atm_location), 'dist': computeDistance(user_location, atm_location)}), 200
+    print(f"Distance from ATM: {computeDistance(user_location, atm_location)*1000} meters\nIs Within Limit: {isWithinLimit(user_location, atm_location)}")
+    return jsonify({'result': isWithinLimit(user_location, atm_location), 'dist': f"{computeDistance(user_location, atm_location)*1000} meters"}), 200
 
 
 @auth_bp.route('/alluser', methods=["GET"])
