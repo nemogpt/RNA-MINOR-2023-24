@@ -4,6 +4,7 @@ import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import axios from "axios";
 import { useLayoutEffect, useState } from "react";
+import AdminSidebar from "./AdminSidebar";
 
 toast.configure();
 
@@ -37,32 +38,7 @@ export const AdminDashboard = () => {
   return (
     <>
       <main>
-        <section id="side-menu">
-          <Logo />
-          <ul>
-            <li>
-              <Link to="/admin">
-                <i className="bx bx-home"></i> Home
-              </Link>
-            </li>
-            <li>
-              <Link to="/create-account">
-                <i className="bx bx-user-pin"></i> Create Account
-              </Link>
-            </li> 
-            <li>
-              <Link
-                onClick={() => {
-                  localStorage.removeItem("token");
-                  localStorage.removeItem("currUser");
-                  window.location = "/";
-                }}
-              >
-                <i className="bx bx-log-out"></i> Logout
-              </Link>
-            </li>
-          </ul>
-        </section>
+        <AdminSidebar active={1} />
         <section className="render-data-analysis">
           <h2>Transaction Data Analysis</h2>
           {loading ? (

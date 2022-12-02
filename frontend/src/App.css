@@ -2,7 +2,7 @@
 @import url("https://fonts.googleapis.com/css2?family=Montserrat:wght@400;800&display=swap");
 
 :root {
-  --primary-color: rgb(255, 255, 255);
+  --primary-color: rgba(252, 247, 247, 0.849);
   --secondary-color: rgb(0, 181, 127);
   --tertiary-color: rgb(0, 141, 98);
   --primary-text-color: rgb(0, 0, 0);
@@ -45,7 +45,8 @@ h1, h2, h3 {
   padding: 2rem;
   border-radius: 3px;
   box-shadow: var(--shadow);
-  max-width: 800px;
+  width: 100%;
+  max-width: 1000px;
 }
 
 /* Animation */

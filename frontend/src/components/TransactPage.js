@@ -3,8 +3,9 @@ import { trim } from "./Utils";
 import { toast } from "react-toastify";
 import axios from "axios";
 import "react-toastify/dist/ReactToastify.css";
-import { useLocation } from "react-router-dom";
+import { useLoaderData, useLocation } from "react-router-dom";
 import addNotification from "react-push-notification";
+import UserSidebar from "./UserSidebar";
 
 toast.configure();
 
@@ -22,6 +23,7 @@ export const TransactPage = (props) => {
   const [atm, setAtm] = useState("");
 
   const token = localStorage.getItem("token");
+  const client = useLoaderData();
 
   const location = useLocation();
 
@@ -157,62 +159,73 @@ export const TransactPage = (props) => {
   };
 
   return (
-    <section id="main-content">
-      <form id="form" onSubmit={processTransfer}>
-        <h1>{props.page}</h1>
+    <main>
+      <UserSidebar active={2} acDetails={client} />
+      <section
+        style={{
+          display: "flex",
+          height: "100vh",
+          flexDirection: "row",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <form id="form" onSubmit={processTransfer}>
+          <h1>{props.page}</h1>
 
-        <label>Select ATM</label>
-        <select required name="atm" onChange={(e) => setAtm(e.target.value)}>
-          <option value="0" disabled selected>
-            Select ATM
-          </option>
-          {options}
-        </select>
-        <label>Debit Card No.</label>
-        <input
-          type="text"
-          placeholder="Enter 16 Digit Card No"
-          value={cardNo}
-          onChange={(e) => setCardNo(e.target.value)}
-        />
+          <label>Select ATM</label>
+          <select required name="atm" onChange={(e) => setAtm(e.target.value)}>
+            <option value="0" disabled selected>
+              Select ATM
+            </option>
+            {options}
+          </select>
+          <label>Debit Card No.</label>
+          <input
+            type="text"
+            placeholder="Enter 16 Digit Card No"
+            value={cardNo}
+            onChange={(e) => setCardNo(e.target.value)}
+          />
 
-        <label>PIN</label>
-        <input
-          type="password"
-          placeholder="Enter 4 Digit PIN"
-          value={pin}
-          onChange={(e) => setPin(e.target.value)}
-        />
+          <label>PIN</label>
+          <input
+            type="password"
+            placeholder="Enter 4 Digit PIN"
+            value={pin}
+            onChange={(e) => setPin(e.target.value)}
+          />
 
-        <label>Expiry Date</label>
-        <input
-          type="text"
-          placeholder="Enter Expiry Date in the form (MM/YY)"
-          value={expDate}
-          onChange={(e) => setExpDate(e.target.value)}
-        />
+          <label>Expiry Date</label>
+          <input
+            type="text"
+            placeholder="Enter Expiry Date in the form (MM/YY)"
+            value={expDate}
+            onChange={(e) => setExpDate(e.target.value)}
+          />
 
-        <label>CVV</label>
-        <input
-          type="password"
-          placeholder="Enter 3 Digit CVV"
-          value={cvv}
-          onChange={(e) => setCVV(e.target.value)}
-        />
+          <label>CVV</label>
+          <input
+            type="password"
+            placeholder="Enter 3 Digit CVV"
+            value={cvv}
+            onChange={(e) => setCVV(e.target.value)}
+          />
 
-        <label>Amount to withdraw</label>
-        <input
-          type="text"
-          name="amount"
-          value={amount}
-          onChange={onDeposit}
-          autoComplete="off"
-          className="right big-input"
-        />
-        <button type="submit" className="btn blue">
-          {props.page}
-        </button>
-      </form>
-    </section>
+          <label>Amount to withdraw</label>
+          <input
+            type="text"
+            name="amount"
+            value={amount}
+            onChange={onDeposit}
+            autoComplete="off"
+            className="right big-input"
+          />
+          <button type="submit" className="btn blue">
+            {props.page}
+          </button>
+        </form>
+      </section>
+    </main>
   );
 };
