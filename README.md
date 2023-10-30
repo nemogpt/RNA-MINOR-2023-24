@@ -32,8 +32,8 @@ The following API endpoints are available:
 - `PUT /api/transactions/:id`: Updates an existing transaction by ID.
 - `DELETE /api/transactions/:id`: Deletes a transaction from the database by ID.
 ## Sample Creds 
--5747390137:Xgirln - Allison Sherman
--8626057123:K6vQKT - Shannon Hall
+- 5747390137:Xgirln - Allison Sherman
+- 8626057123:K6vQKT - Shannon Hall
 
 ## Contributors
 
